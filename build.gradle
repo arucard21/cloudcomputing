@@ -1,0 +1,18 @@
+apply plugin: 'java'
+apply plugin: "eclipse"
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile ("com.amazonaws:aws-java-sdk:1.11.427")
+    compile ("org.springframework.boot:spring-boot-starter:2.0.5.RELEASE")
+}
+
+task(deployAWS){
+	/* should deploy NextcloudAWSApplication to an EC2 instance on AWS */
+}
