@@ -23,3 +23,8 @@ task(deployAWS){
 	/* should deploy NextcloudAWSApplication to an EC2 instance on AWS */
 	/* probably just upload the executable jar file to the server*/
 }
+
+task(deployAWSLocal){
+	dependsOn bootWar
+	/* for testing the deployment on local machines first */
+}
