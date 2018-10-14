@@ -1,4 +1,9 @@
+plugins {
+	id 'org.springframework.boot' version '2.0.5.RELEASE'
+}
+
 apply plugin: 'java'
+apply plugin: 'war'
 apply plugin: "eclipse"
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -9,10 +14,12 @@ repositories {
 }
 
 dependencies {
-    compile ("com.amazonaws:aws-java-sdk:1.11.427")
+    compile ("com.amazonaws:aws-java-sdk:1.11.428")
     compile ("org.springframework.boot:spring-boot-starter:2.0.5.RELEASE")
 }
 
 task(deployAWS){
+	dependsOn bootWar
 	/* should deploy NextcloudAWSApplication to an EC2 instance on AWS */
+	/* probably just upload the executable jar file to the server*/
 }
