@@ -1,0 +1,4 @@
+cxf:
+ path: "/"
+ jaxrs:
+   component-scan: true

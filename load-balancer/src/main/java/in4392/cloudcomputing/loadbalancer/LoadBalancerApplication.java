@@ -1,11 +1,11 @@
-package in4392.cloudcomputing;
+package in4392.cloudcomputing.loadbalancer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class NextcloudAWSApplication {
+public class LoadBalancerApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(NextcloudAWSApplication.class, args);
+		SpringApplication.run(LoadBalancerApplication.class, args);
 	}
 }
