@@ -1,15 +1,15 @@
 package in4392.cloudcomputing.loadbalancer.api;
 
 import javax.inject.Named;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -28,14 +28,12 @@ public class LoadBalancerEndpoint {
 	 * 
 	 * @return the response from the instance
 	 */
-	@HEAD
-	@OPTIONS
 	@GET
 	@POST
 	@PUT
 	@PATCH
 	@DELETE
-	public Response incomingRequest() {
+	public Response incomingRequest(@Context HttpServletRequest request) {
 		// TODO implement load balancer logic
 		return Response.ok().build();
 	}

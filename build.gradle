@@ -4,7 +4,6 @@ plugins {
 allprojects{
 	
 	apply plugin: 'java'
-	apply plugin: 'war'
 	apply plugin: "eclipse"
 	
 	sourceCompatibility = JavaVersion.VERSION_1_8
@@ -22,12 +21,12 @@ allprojects{
 }
 
 task(deployAWS){
-	dependsOn bootWar
+	dependsOn bootJar
 	/* should deploy NextcloudAWSApplication to an EC2 instance on AWS */
 	/* probably just upload the executable jar file to the server*/
 }
 
 task(deployAWSLocal){
-	dependsOn bootWar
+	dependsOn bootJar
 	/* for testing the deployment on local machines first */
 }
