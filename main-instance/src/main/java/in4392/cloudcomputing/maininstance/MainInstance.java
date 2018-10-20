@@ -1,6 +1,11 @@
 package in4392.cloudcomputing.maininstance;
 
 import java.io.IOException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Base64;
 
 import javax.inject.Named;
 
@@ -9,6 +14,7 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.DescribeInstanceStatusRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.ImportKeyPairRequest;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.InstanceStatus;
 import com.amazonaws.services.ec2.model.InstanceType;
@@ -19,9 +25,13 @@ import com.amazonaws.services.ec2.model.SummaryStatus;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TagSpecification;
 
+import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.connection.channel.direct.Session;
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
+
 @Named
 public class MainInstance {
-	private static final String AWS_KEYPAIR_NAME = "cloudcomputing";
+	private static final String AWS_KEYPAIR_NAME = "accessibleFromMainInstance";
 	private static final String AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804 = "ami-0a2ca21adb4a04084";
 	private static final String ERROR_INCORRECTLY_DEPLOYED = "The newly deployed EC2 instance did not start correctly. You may need to manually verify and correct this";
 	private static final String ERROR_STATUS_CHECKS_NOT_OK = "The newly deployed EC2 instance is running but some of the status checks may not have passed";
@@ -29,10 +39,11 @@ public class MainInstance {
 	private static final int INSTANCE_PENDING = 0;
 	private static final int INSTANCE_RUNNING = 16;
 	private static boolean keepAlive;
-	private static boolean shadowDeployed;
+	private static Instance shadow;
 	private static boolean isShadow;
 	private static AmazonEC2 client = AmazonEC2ClientBuilder.defaultClient();
 	private static AWSCredentials credentials;
+	private static KeyPair javaKeyPair;
 
 	/**
 	 * Start the main loop. 
@@ -40,15 +51,17 @@ public class MainInstance {
 	 * This will run continuously, executing an iteration every minute (defined by ITERATION_WAIT_TIME). 
 	 * The loop can be stopped and restarted through the API, with a GET request to 
 	 * "http:\<instanceURL\>:8080/main/start" or "http:\<instanceURL\>:8080/main/stop".
+	 * @throws IOException 
+	 * @throws NoSuchAlgorithmException 
 	 */
-	protected static void startMainLoop() {
+	protected static void startMainLoop() throws IOException, NoSuchAlgorithmException {
 		keepAlive = true;
 		while(keepAlive) {
 			if (credentials == null) {
-				// we can't do anything until we have credentials so this loop will do nothing
+				System.out.println("Waiting for AWS credentials, cannot start yet");
 				continue;
 			}
-			if (!isShadow && !shadowDeployed) {
+			if (!isShadow && !isShadowDeployed()) {
 				deployShadow();
 			}
 			if (isShadow) {
@@ -74,7 +87,7 @@ public class MainInstance {
 	}
 
 	public static boolean isShadowDeployed() {
-		return shadowDeployed;
+		return shadow != null;
 	}
 
 	public static boolean isShadow() {
@@ -90,9 +103,11 @@ public class MainInstance {
 	 * 
 	 * @param usageTag is the tag that represents what the machine will be used for
 	 * @return the Instance object representing the deployed instance
+	 * @throws NoSuchAlgorithmException 
 	 * @throws IOException if the userdata script can not be read
 	 */
-	public static Instance deployDefaultEC2(String usageTag) {
+	public static Instance deployDefaultEC2(String usageTag) throws NoSuchAlgorithmException {
+		ensureJavaKeyPairExists();
 		RunInstancesRequest runInstancesRequest = new RunInstancesRequest(AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804, 1, 1)
 				.withInstanceType(InstanceType.T2Micro)
 				.withKeyName(AWS_KEYPAIR_NAME)
@@ -111,6 +126,18 @@ public class MainInstance {
 		return client.describeInstances(new DescribeInstancesRequest().withInstanceIds(deployedInstanceId))
 				.getReservations().get(0)
 				.getInstances().get(0);
+	}
+
+	private static void ensureJavaKeyPairExists() throws NoSuchAlgorithmException {
+		if (javaKeyPair != null) {
+			return;
+		}
+		KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+		generator.initialize(2048);
+		javaKeyPair = generator.generateKeyPair();
+		String publicKey = Base64.getEncoder().encodeToString(javaKeyPair.getPublic().getEncoded());
+		ImportKeyPairRequest keyPairRequest = new ImportKeyPairRequest(AWS_KEYPAIR_NAME, publicKey);
+		client.importKeyPair(keyPairRequest);
 	}
 
 	private static String getUserData() {
@@ -171,9 +198,20 @@ public class MainInstance {
 		return passed;
 	}
 
-	private static void deployShadow() {
-		// TODO actually deploy the shadow
-		shadowDeployed = true;
+	private static void deployShadow() throws IOException, NoSuchAlgorithmException {
+		ensureJavaKeyPairExists();
+		shadow = deployDefaultEC2("shadow");
+		System.out.println("Shadow deployed");
+		try (SSHClient ssh = new SSHClient()){
+			ssh.loadKnownHosts();
+			ssh.addHostKeyVerifier(new PromiscuousVerifier());
+			ssh.authPublickey("ubuntu", Arrays.asList(ssh.loadKeys(javaKeyPair)));
+			ssh.connect(shadow.getPublicDnsName());
+			try(Session session = ssh.startSession()){
+				session.exec("nohup java -jar ~/main-instance.jar > ~/main-instance.log 2>&1 &");
+			}
+		}
+		System.out.println("Shadow application started");
 	}
 
 	/**
