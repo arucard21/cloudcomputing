@@ -1,7 +1,10 @@
 package in4392.cloudcomputing.maininstance;
 
+import java.io.IOException;
+
 import javax.inject.Named;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.DescribeInstanceStatusRequest;
@@ -22,23 +25,32 @@ public class MainInstance {
 	private static final String AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804 = "ami-0a2ca21adb4a04084";
 	private static final String ERROR_INCORRECTLY_DEPLOYED = "The newly deployed EC2 instance did not start correctly. You may need to manually verify and correct this";
 	private static final String ERROR_STATUS_CHECKS_NOT_OK = "The newly deployed EC2 instance is running but some of the status checks may not have passed";
-	private static final int ITERATION_WAIT_TIME = 1000;
+	private static final int ITERATION_WAIT_TIME = 60 * 1000;
 	private static final int INSTANCE_PENDING = 0;
 	private static final int INSTANCE_RUNNING = 16;
 	private static boolean keepAlive;
 	private static boolean shadowDeployed;
 	private static boolean isShadow;
 	private static AmazonEC2 client = AmazonEC2ClientBuilder.defaultClient();
+	private static AWSCredentials credentials;
 
 	/**
-	 * run main instance until stopped through API
+	 * Start the main loop. 
+	 * 
+	 * This will run continuously, executing an iteration every minute (defined by ITERATION_WAIT_TIME). 
+	 * The loop can be stopped and restarted through the API, with a GET request to 
+	 * "http:\<instanceURL\>:8080/main/start" or "http:\<instanceURL\>:8080/main/stop".
 	 */
-	public static void run() {
-		if (!isShadow && !shadowDeployed) {
-			deployShadow();
-		}
+	protected static void startMainLoop() {
 		keepAlive = true;
 		while(keepAlive) {
+			if (credentials == null) {
+				// we can't do anything until we have credentials so this loop will do nothing
+				continue;
+			}
+			if (!isShadow && !shadowDeployed) {
+				deployShadow();
+			}
 			if (isShadow) {
 				System.out.println("Do something useful here for the shadow instance, like checking the main instance");
 			}
@@ -49,11 +61,15 @@ public class MainInstance {
 		}
 	}
 
-	/**
-	 * Stop the main loop on the running master instance
-	 */
-	public static void destroy() {
-		System.out.println("Destroying the Main Instance application");
+	public static boolean isAlive() {
+		return keepAlive;
+	}
+
+	public static void restartMainLoop() {
+		keepAlive = true;
+	}
+	
+	public static void stopMainLoop() {
 		keepAlive = false;
 	}
 
@@ -74,11 +90,13 @@ public class MainInstance {
 	 * 
 	 * @param usageTag is the tag that represents what the machine will be used for
 	 * @return the Instance object representing the deployed instance
+	 * @throws IOException if the userdata script can not be read
 	 */
 	public static Instance deployDefaultEC2(String usageTag) {
 		RunInstancesRequest runInstancesRequest = new RunInstancesRequest(AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804, 1, 1)
 				.withInstanceType(InstanceType.T2Micro)
 				.withKeyName(AWS_KEYPAIR_NAME)
+				.withUserData(getUserData())
 				.withTagSpecifications(
 						new TagSpecification()
 						.withResourceType(ResourceType.Instance)
@@ -93,6 +111,12 @@ public class MainInstance {
 		return client.describeInstances(new DescribeInstancesRequest().withInstanceIds(deployedInstanceId))
 				.getReservations().get(0)
 				.getInstances().get(0);
+	}
+
+	private static String getUserData() {
+		return "#!/bin/bash\n" + 
+				"apt update\n" + 
+				"apt install -y openjdk-8-jre\n";
 	}
 
 	private static void waitForInstanceToRun(String deployedInstanceId) {
@@ -161,5 +185,13 @@ public class MainInstance {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static AWSCredentials getCredentials() {
+		return credentials;
+	}
+
+	public static void setCredentials(AWSCredentials credentials) {
+		MainInstance.credentials = credentials;
 	}
 }

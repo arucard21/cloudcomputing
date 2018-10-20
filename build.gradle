@@ -1,14 +1,22 @@
 import jp.classmethod.aws.gradle.ec2.AmazonEC2RunInstanceTask;
+import jp.classmethod.aws.gradle.ec2.AmazonEC2TerminateInstanceTask;
+import jp.classmethod.aws.gradle.ec2.AmazonEC2WaitInstanceStatusTask;
 
 plugins {
-	id 'org.springframework.boot' version '2.0.5.RELEASE'
+	id 'org.springframework.boot' version '2.0.6.RELEASE'
+	id "io.spring.dependency-management" version "1.0.6.RELEASE"
 	id "jp.classmethod.aws.ec2" version "0.38"
+}
+
+repositories {
+    mavenCentral()
 }
 
 subprojects{
 	apply plugin: "java"
 	apply plugin: "eclipse"
 	apply plugin: "org.springframework.boot"
+	apply plugin: "io.spring.dependency-management"
 	
 	sourceCompatibility = JavaVersion.VERSION_1_8
 	targetCompatibility = JavaVersion.VERSION_1_8
@@ -17,8 +25,14 @@ subprojects{
 	    mavenCentral()
 	}
 	
+	dependencyManagement {
+	    imports {
+	        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.11.433'
+	    }
+	}
+	
 	dependencies {
-	    compile ("com.amazonaws:aws-java-sdk:1.11.428")
+	    compile ("com.amazonaws:aws-java-sdk-ec2")
 	    compile ("org.apache.cxf:cxf-spring-boot-starter-jaxrs:3.2.6")
 	    compile ("javax.inject:javax.inject:1")
 	}
@@ -29,24 +43,58 @@ aws {
   region = 'eu-west-3'
 }
 
+ext.awsInstanceURL = "";
+
 task deployEC2Instance(type: AmazonEC2RunInstanceTask) {
-	String userDataScript = new File("main-instance/src/main/resources/initializeEC2.sh").getText("UTF-8")
 	ami "ami-0a2ca21adb4a04084" //Ubuntu Server 18.04 on eu-west-3 (Paris)
 	keyName "cloudcomputing"
 	instanceType "t2.micro"
-	userData userDataScript
+	userData "#!/bin/bash\n" + "apt update\n" + "apt install -y openjdk-8-jre\n"
+}
+
+task terminateEC2Instance(type: AmazonEC2TerminateInstanceTask) {
+	if(project.hasProperty("instanceID")){
+		instanceIds += project.property("instanceID")
+	}
+}
+
+task waitInstanceStatusStable(type: AmazonEC2WaitInstanceStatusTask) {
+	if(project.hasProperty("instanceID")){
+		instanceId = project.property("instanceID")
+		loopWait = 2
+
+		doLast {
+			println "Access instance with: ssh ubuntu@" + awsInstance.getPublicDnsName()
+			awsInstanceURL = awsInstance.getPublicDnsName()
+		}
+	}
 }
 
 task(uploadBootJarFiles){
+	dependsOn waitInstanceStatusStable
 	dependsOn subprojects.bootJar
-	if(project.hasProperty("instanceURL")){
+	doLast{
 		exec {
-			instanceURL = project.property("instanceURL")
-			commandLine "scp", "-o", "stricthostkeychecking=no", "app-orchestrator/build/libs/app-orchestrator.jar", "load-balancer/build/libs/load-balancer.jar", "main-instance/build/libs/main-instance.jar", "ubuntu@${instanceURL}:~"
+			println "Copying app-orchestrator, load-balancer and main-instance to the EC2 instance"
+			commandLine "scp", 
+						"-o", "stricthostkeychecking=no", 
+						"app-orchestrator/build/libs/app-orchestrator.jar", 
+						"load-balancer/build/libs/load-balancer.jar", 
+						"main-instance/build/libs/main-instance.jar", 
+						"ubuntu@${awsInstanceURL}:~"
 		}
 	}
 }
 
 task deployApplication(){
 	dependsOn uploadBootJarFiles
+	doLast{
+		exec {
+			println "Starting main-instance on the EC2 instance"
+			commandLine "ssh", 
+						"-o", "stricthostkeychecking=no", 
+						"ubuntu@${awsInstanceURL}", 
+						"nohup java -jar ~/main-instance.jar > ~/main-instance.log 2>&1 &"
+		}
+	}
 }
