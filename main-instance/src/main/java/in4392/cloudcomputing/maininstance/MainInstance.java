@@ -1,17 +1,11 @@
 package in4392.cloudcomputing.maininstance;
 
-import java.util.List;
-
 import javax.inject.Named;
 
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
-import com.amazonaws.services.ec2.model.DescribeImagesRequest;
-import com.amazonaws.services.ec2.model.DescribeImagesResult;
 import com.amazonaws.services.ec2.model.DescribeInstanceStatusRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
-import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.InstanceStatus;
 import com.amazonaws.services.ec2.model.InstanceType;
@@ -24,6 +18,8 @@ import com.amazonaws.services.ec2.model.TagSpecification;
 
 @Named
 public class MainInstance {
+	private static final String AWS_KEYPAIR_NAME = "cloudcomputing";
+	private static final String AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804 = "ami-0a2ca21adb4a04084";
 	private static final String ERROR_INCORRECTLY_DEPLOYED = "The newly deployed EC2 instance did not start correctly. You may need to manually verify and correct this";
 	private static final String ERROR_STATUS_CHECKS_NOT_OK = "The newly deployed EC2 instance is running but some of the status checks may not have passed";
 	private static final int ITERATION_WAIT_TIME = 1000;
@@ -32,6 +28,7 @@ public class MainInstance {
 	private static boolean keepAlive;
 	private static boolean shadowDeployed;
 	private static boolean isShadow;
+	private static AmazonEC2 client = AmazonEC2ClientBuilder.defaultClient();
 
 	/**
 	 * run main instance until stopped through API
@@ -79,21 +76,9 @@ public class MainInstance {
 	 * @return the Instance object representing the deployed instance
 	 */
 	public static Instance deployDefaultEC2(String usageTag) {
-		AmazonEC2 client = AmazonEC2ClientBuilder.defaultClient();
-		DescribeImagesResult imageDescriptions = client.describeImages(new DescribeImagesRequest()
-				.withOwners("099720109477")
-				.withFilters(
-						new Filter()
-						.withName("is-public")
-						.withValues("true"),
-						new Filter()
-						.withName("name")
-						.withValues("ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-????????")));
-		List<Image> images = imageDescriptions.getImages();
-		images.sort((a,b) -> a.getCreationDate().compareTo(b.getCreationDate()));
-		String imageID = images.get(0).getImageId();
-		RunInstancesRequest runInstancesRequest = new RunInstancesRequest(imageID, 1, 1)
+		RunInstancesRequest runInstancesRequest = new RunInstancesRequest(AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804, 1, 1)
 				.withInstanceType(InstanceType.T2Micro)
+				.withKeyName(AWS_KEYPAIR_NAME)
 				.withTagSpecifications(
 						new TagSpecification()
 						.withResourceType(ResourceType.Instance)
@@ -104,6 +89,13 @@ public class MainInstance {
 		RunInstancesResult runInstancesResult = client.runInstances(runInstancesRequest);
 		String deployedInstanceId = runInstancesResult.getReservation().getInstances().get(0).getInstanceId();
 		// wait up to 1 minute for the instance to run
+		waitForInstanceToRun(deployedInstanceId);
+		return client.describeInstances(new DescribeInstancesRequest().withInstanceIds(deployedInstanceId))
+				.getReservations().get(0)
+				.getInstances().get(0);
+	}
+
+	private static void waitForInstanceToRun(String deployedInstanceId) {
 		for (int i = 0; i < 6; i++) {
 			try {
 				Thread.sleep(10000);
@@ -120,27 +112,7 @@ public class MainInstance {
 			}
 			if (state == INSTANCE_RUNNING) {
 				// check status checks are completed as well
-				boolean passed = false;
-				// wait up to 10 minutes for the status checks
-				for (int j = 0; j < 10; j++) {
-					try {
-						Thread.sleep(60000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					InstanceStatus status = client
-							.describeInstanceStatus(
-									new DescribeInstanceStatusRequest()
-									.withInstanceIds(deployedInstanceId))
-							.getInstanceStatuses()
-							.get(0);
-					SummaryStatus systemStatus = SummaryStatus.fromValue(status.getSystemStatus().getStatus());
-					SummaryStatus instanceStatus = SummaryStatus.fromValue(status.getInstanceStatus().getStatus());
-					if(SummaryStatus.Ok.equals(systemStatus) && SummaryStatus.Ok.equals(instanceStatus)) {
-						passed = true;
-						break;
-					}
-				}
+				boolean passed = verifyStatusChecksPassed(deployedInstanceId);
 				if (!passed) {
 					throw new IllegalStateException(ERROR_STATUS_CHECKS_NOT_OK);
 				}
@@ -148,9 +120,31 @@ public class MainInstance {
 			}
 			throw new IllegalStateException(ERROR_INCORRECTLY_DEPLOYED);
 		}
-		return client.describeInstances(new DescribeInstancesRequest().withInstanceIds(deployedInstanceId))
-				.getReservations().get(0)
-				.getInstances().get(0);
+	}
+
+	private static boolean verifyStatusChecksPassed(String deployedInstanceId) {
+		boolean passed = false;
+		// wait up to 10 minutes for the status checks
+		for (int j = 0; j < 10; j++) {
+			try {
+				Thread.sleep(60000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			InstanceStatus status = client
+					.describeInstanceStatus(
+							new DescribeInstanceStatusRequest()
+							.withInstanceIds(deployedInstanceId))
+					.getInstanceStatuses()
+					.get(0);
+			SummaryStatus systemStatus = SummaryStatus.fromValue(status.getSystemStatus().getStatus());
+			SummaryStatus instanceStatus = SummaryStatus.fromValue(status.getInstanceStatus().getStatus());
+			if(SummaryStatus.Ok.equals(systemStatus) && SummaryStatus.Ok.equals(instanceStatus)) {
+				passed = true;
+				break;
+			}
+		}
+		return passed;
 	}
 
 	private static void deployShadow() {
