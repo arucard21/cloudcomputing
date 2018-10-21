@@ -1,12 +1,14 @@
 package in4392.cloudcomputing.loadbalancer.api;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.inject.Named;
-
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DELETE;
@@ -18,10 +20,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+
 
 @Named
 @Path("")
@@ -32,15 +38,24 @@ public class LoadBalancerEndpoint {
 	static final int minFreeInstances = 10;
 	int index;
 	List<WebTarget> targets;
+	List<URI> targetsURI;
 	List<Integer> requestsPerInstance;
 	List<Boolean> isInstanceFree;
+	URI reliabilityURI;
+	WebTarget reliabilityInstance;
 	
 	
 	public LoadBalancerEndpoint(){
 		this.index = -1;
 		this.targets = new ArrayList<WebTarget>();
+		this.targetsURI = new ArrayList<URI>();
 		this.requestsPerInstance = new ArrayList<Integer>();
 		this.isInstanceFree = new ArrayList<Boolean>();
+		
+		this.reliabilityInstance = ClientBuilder.newBuilder()
+												.property("connection.timeout", 100)
+												.build()
+												.target(this.reliabilityURI);
 	}
 	
 	@Path("health")
@@ -57,9 +72,10 @@ public class LoadBalancerEndpoint {
 	 */
 	@Path("")
 	@GET
-	public Response  getInstanceResponse(URI uri) {
+	public Response  getInstanceResponse() {
 		//Client client = ClientBuilder.newBuilder().property("connection.timeout", 100).build();
-		Response response = client.target(uri).request().get();
+		Response response = targets.get(index).request().get();
+	
 		
 		
 		try {
@@ -70,9 +86,10 @@ public class LoadBalancerEndpoint {
 			}
 			
 		}finally {
+			
 			response.close();
 		}
-	
+		return Response.ok().build();
 	}
 	
 	
@@ -140,18 +157,61 @@ public class LoadBalancerEndpoint {
 		}
 		if (count < minFreeInstances) {
 			//addTarget()
+			requestNewInstances(minFreeInstances - count, reliabilityURI);
 			
 		}
 	}
 	
-	public Response incomingRequest(@Context HttpServletRequest request, HttpServletResponse response) {
+	/**
+	 * talk to the reliability instance for those
+	 * @param num
+	 */
+	@Path("reliability/")
+	public void requestNewInstances(int num, URI uri) {
+		MultivaluedMap<String, String> formData = new MultivaluedHashMap<String, String>();
+	    formData.add("numNewInstances", String.valueOf(num));
+		
+	    //add accept
+		Response response = reliabilityInstance.request().post(Entity.form(formData));
+	}
+	
+	public void updateList() {
+	
+		MultivaluedMap<String, Object> uriList = reliabilityInstance.request().get().getHeaders();
+		Iterator<URI> it = targetsURI.iterator();
+		while (it.hasNext()) {
+			if (!uriList.containsValue((URI) it.next())) {
+				this.removeTarget(it.next());
+				targetsURI.remove(it.next());
+			}
+		}
+		Iterator<String> itt = uriList.keySet().iterator();
+		
+		while(it.hasNext()) {
+			if (!targetsURI.contains(uriList.get(itt.next()))) {
+				//add and update index
+			}
+			
+		}
+			
+	}
+		
+		
+		
+	
+	
+	public Response incomingRequest(@Context HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO implement load balancer logic
 		this.countFreeInstances();
 		this.requestsPerInstance.set(index, this.requestsPerInstance.get(index) + 1);
 		if (this.requestsPerInstance.get(index).intValue() == maxRequestsPerInstance) this.isInstanceFree.set(index, false);
 		
 		
-		request.getRequestDispatcher(targets.get(index).getUri().getPath());
+		RequestDispatcher rd = request.getRequestDispatcher(targets.get(index).getUri().getPath());
+		rd.forward(request, response);
+		
+		
+		
 		return Response.ok().build();
 	}
 }
