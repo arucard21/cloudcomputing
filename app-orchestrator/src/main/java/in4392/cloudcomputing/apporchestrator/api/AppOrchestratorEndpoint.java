@@ -2,6 +2,7 @@ package in4392.cloudcomputing.apporchestrator.api;
 
 import javax.inject.Named;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -25,5 +26,12 @@ public class AppOrchestratorEndpoint {
 		AppOrchestrator.destroy();
 		// maybe the VM can be destroyed as well
 		return "stopped main instance application but the VM is still running";
+	}
+	
+	@POST
+	@Path("")
+	public Response requestNewInstances(int amount) {
+		//TODO create the requested amount of instances
+		return Response.ok().build();
 	}
 }
