@@ -6,6 +6,11 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
+import java.util.Date;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import javax.inject.Named;
 
@@ -14,16 +19,24 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.DescribeInstanceStatusRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.ImportKeyPairRequest;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.InstanceStatus;
 import com.amazonaws.services.ec2.model.InstanceType;
+import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.ResourceType;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
 import com.amazonaws.services.ec2.model.SummaryStatus;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TagSpecification;
+import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
+import com.amazonaws.services.cloudwatch.model.Datapoint;
+import com.amazonaws.services.cloudwatch.model.Dimension;
+import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
@@ -42,6 +55,8 @@ public class MainInstance {
 	private static Instance shadow;
 	private static boolean isShadow;
 	private static AmazonEC2 client = AmazonEC2ClientBuilder.defaultClient();
+	private static AmazonCloudWatch cloudWatch = AmazonCloudWatchClientBuilder.defaultClient();
+	private static List<String> cloudWatchMetrics = new ArrayList<String>();
 	private static AWSCredentials credentials;
 	private static KeyPair javaKeyPair;
 
@@ -69,6 +84,7 @@ public class MainInstance {
 			}
 			else{
 				System.out.println("Do something useful here for the main instance, like monitoring");
+				monitor();
 			}
 			waitUntilNextIteration();
 		}
@@ -231,5 +247,84 @@ public class MainInstance {
 
 	public static void setCredentials(AWSCredentials credentials) {
 		MainInstance.credentials = credentials;
+	}
+	
+	public static void monitor() {
+		
+		boolean done = false;
+		DescribeInstancesRequest request = new DescribeInstancesRequest();
+		cloudWatchMetrics.add("CPUUtilization");
+		cloudWatchMetrics.add("NetworkIn");
+		cloudWatchMetrics.add("NetworkOut");
+		cloudWatchMetrics.add("DiskReadOps");
+		cloudWatchMetrics.add("DiskWriteOps");
+		// This part covers the Monitoring subsection of what resources are used in the system. 
+		// TODO Usage of resources by the system can be the total of the aforementioned ones or the description of AWS resources used(basically everything present in the EC2 dashboard). 
+		// TODO The number of users can be requested by the Load Balancer. 
+		// TODO The performance part could be the time the system takes to fully handle a user request, measured by the Load Balancer again
+		
+		// Its one hour in milliseconds, in order to get past state of instance
+		// Temporary offset that is the time difference between here and Paris(don't ask me why it is two hours). Will not be needed when running the system as instances will be in the same timezone
+		long offsetInMilliseconds = 1000 * 60 * 60;
+		long timeDifferenceParis = 1000 * 60 * 120;
+		Dimension instanceDimension = new Dimension();
+		List<Datapoint> Datapoints;
+
+		while(!done) {
+		    DescribeInstancesResult response = client.describeInstances(request);
+
+		    for(Reservation reservation : response.getReservations()) {
+		        for(Instance instance : reservation.getInstances()) {
+		            System.out.printf(
+		                "Found instance with id %s, " +
+		                "AMI %s, " +
+		                "type %s, " +
+		                "state %s " +
+		                "and monitoring state %s\n",
+		                instance.getInstanceId(),
+		                instance.getImageId(),
+		                instance.getInstanceType(),
+		                instance.getState().getName(),
+		                instance.getMonitoring().getState());
+			    	
+				instanceDimension.setName("InstanceId");
+				instanceDimension.setValue(instance.getInstanceId());
+		//TODO Include other metrics besides cloudwatch
+		//TODO Store/present values in useful way for the rest of the system
+	            	for(String name: cloudWatchMetrics) {
+				System.out.println(name);
+
+				GetMetricStatisticsRequest request2 = new GetMetricStatisticsRequest()
+					.withStartTime(new Date(new Date().getTime() - timeDifferenceParis - offsetInMilliseconds))
+					.withNamespace("AWS/EC2")
+		        		.withPeriod(300)
+			        	.withMetricName(name)
+					.withStatistics("Average")
+					.withDimensions(Arrays.asList(instanceDimension))
+				        .withEndTime(new Date(new Date().getTime() - timeDifferenceParis));
+				GetMetricStatisticsResult getMetricStatisticsResult = cloudWatch.getMetricStatistics(request2);
+			
+				Datapoints =  getMetricStatisticsResult.getDatapoints();		       
+				Collections.sort(Datapoints, new Comparator<Datapoint>() {
+					public int compare(Datapoint dp1, Datapoint dp2) {
+						return dp1.getTimestamp().compareTo(dp2.getTimestamp());
+					}
+				});
+
+
+				for (Datapoint datapoint: Datapoints) {
+					System.out.println(datapoint.getTimestamp());
+					System.out.println(datapoint.getAverage());
+				}
+
+			   }
+		        }
+		    }
+		   request.setNextToken(response.getNextToken());
+
+    		   if(response.getNextToken() == null) {
+		       done = true;
+		   }
+	      }
 	}
 }
