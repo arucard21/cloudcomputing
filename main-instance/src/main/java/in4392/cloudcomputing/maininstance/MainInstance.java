@@ -109,44 +109,51 @@ public class MainInstance {
 			}
 			if (behaveAsShadow()) {
 				if(!isMainInstanceAlive()) {
-					replaceMain = true;
-					if(mainInstanceStopAttempted == false) {
-						mainInstanceStopAttempted = true;
-						stopEC2Instance(mainInstance.getInstanceId());
-					}
-					else {
-						if (mainInstanceStartAttempted == false) {
-							if (isStopped(mainInstance.getInstanceId())) {
-								mainInstanceStartAttempted = true;
-								startEC2Instance(mainInstance.getInstanceId());
-							}
-						}
-						else {
-							if(mainInstanceRedeployAttempted == false) {
-								mainInstanceRedeployAttempted = true;
-								String previousMainInstanceId = mainInstance.getInstanceId();
-								mainInstance = deployDefaultEC2("", "cloudcomputing");
-								// termination of non-working EC2 instance is not verified
-								// it might still be running in AWS which can be checked in AWS Console
-								terminateEC2(previousMainInstanceId);
-							}
-						}
-					}
+					recoverMainInstance();
 				}
 				else {
-					if(replaceMain == true) {
-						// reset all flags since the main instance is working correctly
-						mainInstanceStopAttempted = false;
-						mainInstanceRedeployAttempted = false;
-						replaceMain = false;
-					}
+					resetRecoveryFlags();
 				}
 			}
 			else{
-				System.out.println("Do something useful here for the main instance, like monitoring");
 				monitor();
 			}
 			waitUntilNextIteration();
+		}
+	}
+
+	private static void resetRecoveryFlags() {
+		if(replaceMain == true) {
+			// reset all flags since the main instance is working correctly
+			mainInstanceStopAttempted = false;
+			mainInstanceRedeployAttempted = false;
+			replaceMain = false;
+		}
+	}
+
+	private static void recoverMainInstance() throws NoSuchAlgorithmException {
+		replaceMain = true;
+		if(mainInstanceStopAttempted == false) {
+			mainInstanceStopAttempted = true;
+			stopEC2Instance(mainInstance.getInstanceId());
+		}
+		else {
+			if (mainInstanceStartAttempted == false) {
+				if (isStopped(mainInstance.getInstanceId())) {
+					mainInstanceStartAttempted = true;
+					startEC2Instance(mainInstance.getInstanceId());
+				}
+			}
+			else {
+				if(mainInstanceRedeployAttempted == false) {
+					mainInstanceRedeployAttempted = true;
+					String previousMainInstanceId = mainInstance.getInstanceId();
+					mainInstance = deployDefaultEC2("", "cloudcomputing");
+					// termination of non-working EC2 instance is not verified
+					// it might still be running in AWS which can be checked in AWS Console
+					terminateEC2(previousMainInstanceId);
+				}
+			}
 		}
 	}
 
