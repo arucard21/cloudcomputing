@@ -2,3 +2,4 @@ cxf:
  path: "/"
  jaxrs:
    component-scan: true
+   classes-scan-packages: com.fasterxml.jackson.jaxrs.json
