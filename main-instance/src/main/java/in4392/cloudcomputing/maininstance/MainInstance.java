@@ -93,6 +93,7 @@ public class MainInstance {
 			}
 			if (isShadow) {
 				System.out.println("Do something useful here for the shadow instance, like checking the main instance");
+				verifyMainInstanceAlive();
 			}
 			else{
 				System.out.println("Do something useful here for the main instance, like monitoring");
@@ -100,6 +101,24 @@ public class MainInstance {
 			}
 			waitUntilNextIteration();
 		}
+	}
+
+	/**
+	 * Verifies that the main instance is still alive. 
+	 * 
+	 * Also starts the recovery process if not alive.
+	 * First, it will try to restart the main loop through the API.
+	 * Then, it will try to restart the instance using the AWS API.
+	 * If that also fails, it will try to re-deploy the main instance.
+	 * 
+	 * Note that redeploying will provision the instance with a new public DNS name
+	 * which needs to be retrieved from the AWS console in order to access the instance. 
+	 * The "cloudcomputing" keypair will still be added so the instance should still be
+	 * accessible to those that could previously access the main instance.
+	 */
+	private static void verifyMainInstanceAlive() {
+		// TODO Auto-generated method stub
+		
 	}
 
 	public static boolean isAlive() {
