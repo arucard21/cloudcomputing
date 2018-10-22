@@ -32,6 +32,7 @@ import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
 import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ec2.model.DeleteKeyPairRequest;
 import com.amazonaws.services.ec2.model.DescribeInstanceStatusRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
@@ -53,6 +54,7 @@ import com.amazonaws.util.EC2MetadataUtils;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
+import net.schmizz.sshj.connection.channel.direct.Session.Command;
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.xfer.FileSystemFile;
 import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
@@ -74,7 +76,7 @@ public class MainInstance {
 	private static boolean isShadow;
 	private static boolean replaceMain;
 	private static AmazonEC2 client;
-	private static AmazonCloudWatch cloudWatch = AmazonCloudWatchClientBuilder.defaultClient();
+	private static AmazonCloudWatch cloudWatch;
 	private static final List<String> metricNames = Arrays.asList("CPUUtilization", "NetworkIn", "NetworkOut", "DiskReadOps", "DiskWriteOps");
 	private static Map<String, InstanceMetrics> metricsForInstances = new HashMap<>();
 	private static AWSCredentials credentials;
@@ -270,14 +272,20 @@ public class MainInstance {
 		generator.initialize(2048);
 		javaKeyPair = generator.generateKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(javaKeyPair.getPublic().getEncoded());
+		removeExistingKeyPair();
 		ImportKeyPairRequest keyPairRequest = new ImportKeyPairRequest(AWS_KEYPAIR_NAME, publicKey);
 		client.importKeyPair(keyPairRequest);
 	}
 
+	private static void removeExistingKeyPair() {
+		client.deleteKeyPair(new DeleteKeyPairRequest(AWS_KEYPAIR_NAME));
+	}
+
 	private static String getUserData() {
-		return "#!/bin/bash\n" + 
+		String userData = "#!/bin/bash\n" + 
 				"apt update\n" + 
 				"apt install -y openjdk-8-jre\n";
+		return Base64.getEncoder().encodeToString(userData.getBytes());
 	}
 
 	private static void waitForInstanceToRun(String deployedInstanceId) {
@@ -295,7 +303,7 @@ public class MainInstance {
 				// check status checks are completed as well
 				boolean passed = verifyStatusChecksPassed(deployedInstanceId);
 				if (!passed) {
-					throw new IllegalStateException(ERROR_STATUS_CHECKS_NOT_OK);
+				        throw new IllegalStateException(ERROR_STATUS_CHECKS_NOT_OK);
 				}
 				break;
 			}
@@ -311,7 +319,7 @@ public class MainInstance {
 				.getCode();
 		return state;
 	}
-
+	
 	private static boolean verifyStatusChecksPassed(String deployedInstanceId) {
 		boolean passed = false;
 		// wait up to 10 minutes for the status checks
@@ -322,14 +330,11 @@ public class MainInstance {
 				e.printStackTrace();
 			}
 			InstanceStatus status = client
-					.describeInstanceStatus(
-							new DescribeInstanceStatusRequest()
-							.withInstanceIds(deployedInstanceId))
-					.getInstanceStatuses()
-					.get(0);
+					.describeInstanceStatus(new DescribeInstanceStatusRequest().withInstanceIds(deployedInstanceId))
+					.getInstanceStatuses().get(0);
 			SummaryStatus systemStatus = SummaryStatus.fromValue(status.getSystemStatus().getStatus());
 			SummaryStatus instanceStatus = SummaryStatus.fromValue(status.getInstanceStatus().getStatus());
-			if(SummaryStatus.Ok.equals(systemStatus) && SummaryStatus.Ok.equals(instanceStatus)) {
+			if (SummaryStatus.Ok.equals(systemStatus) && SummaryStatus.Ok.equals(instanceStatus)) {
 				passed = true;
 				break;
 			}
@@ -340,7 +345,11 @@ public class MainInstance {
 	private static void deployShadow() throws IOException, NoSuchAlgorithmException {
 		shadow = deployDefaultEC2("shadow", AWS_KEYPAIR_NAME);
 		System.out.println("Shadow deployed");
-		copyApplicationToDeployedInstance(Paths.get("~/main-instance.jar").toFile(), shadow);
+		waitForInstanceToRun(shadow.getInstanceId());
+		copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), shadow);
+		copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), shadow);
+		copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), shadow);
+		copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), shadow);
 		startDeployedApplication(shadow, "main-instance");
 		System.out.println("Shadow application started");
 	}
@@ -350,9 +359,10 @@ public class MainInstance {
 		try (SSHClient ssh = new SSHClient()){
 			ssh.loadKnownHosts();
 			ssh.addHostKeyVerifier(new PromiscuousVerifier());
+			ssh.connect(instance.getPublicDnsName());
 			ssh.authPublickey("ubuntu", Arrays.asList(ssh.loadKeys(javaKeyPair)));
 			SCPFileTransfer scp = ssh.newSCPFileTransfer();
-			String homeDirOnRemoteInstance = "~";
+			String homeDirOnRemoteInstance = "/home/ubuntu/";
 			scp.upload(new FileSystemFile(applicationJarFile), homeDirOnRemoteInstance);
 		}
 	}
@@ -362,10 +372,15 @@ public class MainInstance {
 		try (SSHClient ssh = new SSHClient()){
 			ssh.loadKnownHosts();
 			ssh.addHostKeyVerifier(new PromiscuousVerifier());
-			ssh.authPublickey("ubuntu", Arrays.asList(ssh.loadKeys(javaKeyPair)));
 			ssh.connect(instance.getPublicDnsName());
+			ssh.authPublickey("ubuntu", Arrays.asList(ssh.loadKeys(javaKeyPair)));
+			Command command;
+			String remoteCommand = "nohup java -jar /home/ubuntu/"+applicationName+".jar > /home/ubuntu/"+applicationName+".log 2>&1 &";
 			try(Session session = ssh.startSession()){
-				session.exec("nohup java -jar ~/main-instance.jar > ~/main-instance.log 2>&1 &");
+				command = session.exec(remoteCommand);
+			}
+			if (command.getExitStatus() != 0) {
+				System.out.println(applicationName + " was not started correctly with the command: " + remoteCommand);
 			}
 		}
 	}
@@ -374,8 +389,10 @@ public class MainInstance {
 		ensureJavaKeyPairExists();
 		appOrchestrator = deployDefaultEC2("App Orchestrator", AWS_KEYPAIR_NAME);
 		System.out.println("App Orchestrator deployed");
-		copyApplicationToDeployedInstance(Paths.get("~/load-balancer.jar").toFile(), appOrchestrator);
-		copyApplicationToDeployedInstance(Paths.get("~/app-orchestrator.jar").toFile(), appOrchestrator);
+		waitForInstanceToRun(appOrchestrator.getInstanceId());
+		copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), appOrchestrator);
+		copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), appOrchestrator);
+		copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), appOrchestrator);
 		startDeployedApplication(appOrchestrator, "app-orchestrator");
 		System.out.println("App Orchestrator started");
 	}
@@ -397,7 +414,9 @@ public class MainInstance {
 
 	public static void setCredentials(AWSCredentials credentials) {
 		MainInstance.credentials = credentials;
-		client = AmazonEC2ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
+		AWSStaticCredentialsProvider staticCredentialsProvider = new AWSStaticCredentialsProvider(credentials);
+		client = AmazonEC2ClientBuilder.standard().withCredentials(staticCredentialsProvider).build();
+		cloudWatch = AmazonCloudWatchClientBuilder.standard().withCredentials(staticCredentialsProvider).build();
 	}
 	
 	public static void monitor() {
