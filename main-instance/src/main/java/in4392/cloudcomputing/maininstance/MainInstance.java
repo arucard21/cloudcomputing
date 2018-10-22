@@ -1,6 +1,8 @@
 package in4392.cloudcomputing.maininstance;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -42,8 +44,11 @@ import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TagSpecification;
 
 import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.connection.channel.direct.Session;
+import net.schmizz.sshj.transport.TransportException;
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
+import net.schmizz.sshj.userauth.UserAuthException;
 
 @Named
 public class MainInstance {
@@ -84,6 +89,9 @@ public class MainInstance {
 			if (!isShadow && !isShadowDeployed()) {
 				deployShadow();
 			}
+			if(!isAppOrchestratorDeployed()) {
+				deployAppOrchestrator();
+			}
 			if (isShadow) {
 				System.out.println("Do something useful here for the shadow instance, like checking the main instance");
 			}
@@ -109,6 +117,10 @@ public class MainInstance {
 
 	public static boolean isShadowDeployed() {
 		return shadow != null;
+	}
+	
+	public static boolean isAppOrchestratorDeployed() {
+		return appOrchestrator != null;
 	}
 
 	public static boolean isShadow() {
@@ -223,20 +235,34 @@ public class MainInstance {
 		ensureJavaKeyPairExists();
 		shadow = deployDefaultEC2("shadow");
 		System.out.println("Shadow deployed");
+		copyApplicationToDeployedInstance(Paths.get("~/main-instance.jar"), shadow);
+		startDeployedApplication(shadow);
+		System.out.println("Shadow application started");
+	}
+
+	private static void copyApplicationToDeployedInstance(Path pathToApplicationJar, Instance instance) {
+		// TODO Auto-generated method stub
+	}
+
+	private static void startDeployedApplication(Instance instance) throws NoSuchAlgorithmException, UserAuthException, TransportException, ConnectionException, IOException {
 		try (SSHClient ssh = new SSHClient()){
 			ssh.loadKnownHosts();
 			ssh.addHostKeyVerifier(new PromiscuousVerifier());
 			ssh.authPublickey("ubuntu", Arrays.asList(ssh.loadKeys(javaKeyPair)));
-			ssh.connect(shadow.getPublicDnsName());
+			ssh.connect(instance.getPublicDnsName());
 			try(Session session = ssh.startSession()){
 				session.exec("nohup java -jar ~/main-instance.jar > ~/main-instance.log 2>&1 &");
 			}
 		}
-		System.out.println("Shadow application started");
 	}
 	
-	private static void deployAppOrchestrator() {
-		// TODO implement this once shadow deployment code is completed
+	private static void deployAppOrchestrator() throws NoSuchAlgorithmException, UserAuthException, TransportException, ConnectionException, IOException {
+		ensureJavaKeyPairExists();
+		appOrchestrator = deployDefaultEC2("App Orchestrator");
+		System.out.println("App Orchestrator deployed");
+		copyApplicationToDeployedInstance(Paths.get("~/app-orchestrator.jar"), appOrchestrator);
+		startDeployedApplication(appOrchestrator);
+		System.out.println("App Orchestrator started");
 	}
 
 	/**
