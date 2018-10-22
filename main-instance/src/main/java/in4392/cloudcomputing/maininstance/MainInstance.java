@@ -339,7 +339,7 @@ public class MainInstance {
 		shadow = deployDefaultEC2("shadow", AWS_KEYPAIR_NAME);
 		System.out.println("Shadow deployed");
 		copyApplicationToDeployedInstance(Paths.get("~/main-instance.jar").toFile(), shadow);
-		startDeployedApplication(shadow);
+		startDeployedApplication(shadow, "main-instance");
 		System.out.println("Shadow application started");
 	}
 
@@ -355,7 +355,7 @@ public class MainInstance {
 		}
 	}
 
-	private static void startDeployedApplication(Instance instance) throws IOException, NoSuchAlgorithmException {
+	private static void startDeployedApplication(Instance instance, String applicationName) throws IOException, NoSuchAlgorithmException {
 		ensureJavaKeyPairExists();
 		try (SSHClient ssh = new SSHClient()){
 			ssh.loadKnownHosts();
@@ -372,8 +372,9 @@ public class MainInstance {
 		ensureJavaKeyPairExists();
 		appOrchestrator = deployDefaultEC2("App Orchestrator", AWS_KEYPAIR_NAME);
 		System.out.println("App Orchestrator deployed");
+		copyApplicationToDeployedInstance(Paths.get("~/load-balancer.jar").toFile(), appOrchestrator);
 		copyApplicationToDeployedInstance(Paths.get("~/app-orchestrator.jar").toFile(), appOrchestrator);
-		startDeployedApplication(appOrchestrator);
+		startDeployedApplication(appOrchestrator, "app-orchestrator");
 		System.out.println("App Orchestrator started");
 	}
 
