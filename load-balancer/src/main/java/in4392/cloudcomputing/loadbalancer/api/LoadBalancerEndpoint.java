@@ -104,6 +104,8 @@ public class LoadBalancerEndpoint {
 		}
 	}
 	
+	@Path("")
+	@POST
 	public void requestNewInstances(int num) {
 		ClientBuilder.newClient().target(appOrchestratorURI).request().post(Entity.entity(num, MediaType.APPLICATION_JSON));
 	}

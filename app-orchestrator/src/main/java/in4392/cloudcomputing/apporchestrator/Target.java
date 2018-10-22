@@ -1,22 +1,22 @@
-package in4392.cloudcomputing.loadbalancer.api;
+package in4392.cloudcomputing.apporchestrator;
 
 import java.net.URI;
 
 public class Target {
-	private URI targetURI;
+	private String targetURI;
 	private boolean isFree;
 	private int currentAmountOfRequests;
 
-	public Target(URI targetURI, boolean isFree, int currentAmountOfRequests) {
+	public Target(String targetURI, boolean isFree, int currentAmountOfRequests) {
 		super();
 		this.targetURI = targetURI;
 		this.isFree = isFree;
 		this.setCurrentAmountOfRequests(currentAmountOfRequests);
 	}
-	public URI getTargetURI() {
+	public String getTargetURI() {
 		return targetURI;
 	}
-	public void setTargetURI(URI targetURI) {
+	public void setTargetURI(String targetURI) {
 		this.targetURI = targetURI;
 	}
 	public boolean isFree() {
