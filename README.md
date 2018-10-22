@@ -7,7 +7,6 @@ In order to deploy an EC2 instance with Gradle, the following need to be configu
 - You must have `ssh` installed on your local machine
 - The public key for your local SSH instance must be imported into AWS as KeyPair with the name "cloudcomputing"
 - You must have `curl` installed on your local machine
-- You must have `sleep` installed on your local machine
 - A security group with name "default" must be available and configured to allow inbound TCP traffic on port 22 (for SSH) and 8080 (for Tomcat)
 
 Since we use system tools with Gradle, this will work best on a Linux system with these tools installed.

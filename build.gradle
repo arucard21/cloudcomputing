@@ -81,6 +81,7 @@ task(uploadBootJarFiles){
 			println "Copying app-orchestrator, load-balancer and main-instance to the EC2 instance"
 			commandLine "scp", 
 						"-o", "stricthostkeychecking=no", 
+						"application/build/libs/application.jar",
 						"app-orchestrator/build/libs/app-orchestrator.jar", 
 						"load-balancer/build/libs/load-balancer.jar", 
 						"main-instance/build/libs/main-instance.jar", 
@@ -99,10 +100,7 @@ task deployApplication(){
 						"ubuntu@${awsInstanceURL}", 
 						"nohup java -jar ~/main-instance.jar > ~/main-instance.log 2>&1 &"
 		}
-		exec{
-			println "Waiting for application to start"
-			commandLine "sleep", "15s"
-		}
+		sleep(15 * 1000)
 		exec {
 			println "Uploading AWS credentials"
 			commandLine "curl", 
