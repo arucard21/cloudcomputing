@@ -23,6 +23,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.UriBuilder;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
@@ -72,7 +73,7 @@ public class MainInstance {
 	private static Instance appOrchestrator;
 	private static boolean isShadow;
 	private static boolean replaceMain;
-	private static AmazonEC2 client = AmazonEC2ClientBuilder.defaultClient();
+	private static AmazonEC2 client;
 	private static AmazonCloudWatch cloudWatch = AmazonCloudWatchClientBuilder.defaultClient();
 	private static final List<String> metricNames = Arrays.asList("CPUUtilization", "NetworkIn", "NetworkOut", "DiskReadOps", "DiskWriteOps");
 	private static Map<String, InstanceMetrics> metricsForInstances = new HashMap<>();
@@ -94,29 +95,30 @@ public class MainInstance {
 	protected static void startMainLoop() throws IOException, NoSuchAlgorithmException {
 		keepAlive = true;
 		while(keepAlive) {
-			if (mainInstance == null) {
-				updateEC2InstanceForMainInstance();
-			}
 			if (credentials == null) {
 				System.out.println("Waiting for AWS credentials, cannot start yet");
-				continue;
 			}
-			if (!behaveAsShadow() && !isShadowDeployed()) {
-				deployShadow();
-			}
-			if(!isAppOrchestratorDeployed()) {
-				deployAppOrchestrator();
-			}
-			if (behaveAsShadow()) {
-				if(!isMainInstanceAlive()) {
-					recoverMainInstance();
+			else {
+				if (mainInstance == null) {
+					updateEC2InstanceForMainInstance();
 				}
-				else {
-					resetRecoveryFlags();
+				if (!behaveAsShadow() && !isShadowDeployed()) {
+					deployShadow();
 				}
-			}
-			else{
-				monitor();
+				if(!isAppOrchestratorDeployed()) {
+					deployAppOrchestrator();
+				}
+				if (behaveAsShadow()) {
+					if(!isMainInstanceAlive()) {
+						recoverMainInstance();
+					}
+					else {
+						resetRecoveryFlags();
+					}
+				}
+				else{
+					monitor();
+				}
 			}
 			waitUntilNextIteration();
 		}
@@ -395,6 +397,7 @@ public class MainInstance {
 
 	public static void setCredentials(AWSCredentials credentials) {
 		MainInstance.credentials = credentials;
+		client = AmazonEC2ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
 	}
 	
 	public static void monitor() {
