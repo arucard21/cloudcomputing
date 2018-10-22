@@ -2,6 +2,7 @@ package in4392.cloudcomputing.maininstance;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Named;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.UriBuilder;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
@@ -39,9 +42,13 @@ import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.ResourceType;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.RunInstancesResult;
+import com.amazonaws.services.ec2.model.StartInstancesRequest;
+import com.amazonaws.services.ec2.model.StopInstancesRequest;
 import com.amazonaws.services.ec2.model.SummaryStatus;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TagSpecification;
+import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
+import com.amazonaws.util.EC2MetadataUtils;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
@@ -58,16 +65,22 @@ public class MainInstance {
 	private static final int ITERATION_WAIT_TIME = 60 * 1000;
 	private static final int INSTANCE_PENDING = 0;
 	private static final int INSTANCE_RUNNING = 16;
+	private static final int INSTANCE_STOPPED = 80;
 	private static boolean keepAlive;
+	private static Instance mainInstance;
 	private static Instance shadow;
 	private static Instance appOrchestrator;
 	private static boolean isShadow;
+	private static boolean replaceMain;
 	private static AmazonEC2 client = AmazonEC2ClientBuilder.defaultClient();
 	private static AmazonCloudWatch cloudWatch = AmazonCloudWatchClientBuilder.defaultClient();
 	private static final List<String> metricNames = Arrays.asList("CPUUtilization", "NetworkIn", "NetworkOut", "DiskReadOps", "DiskWriteOps");
 	private static Map<String, InstanceMetrics> metricsForInstances = new HashMap<>();
 	private static AWSCredentials credentials;
 	private static KeyPair javaKeyPair;
+	private static boolean mainInstanceStopAttempted = false;
+	private static boolean mainInstanceStartAttempted = false;
+	private static boolean mainInstanceRedeployAttempted = false;
 
 	/**
 	 * Start the main loop. 
@@ -81,19 +94,53 @@ public class MainInstance {
 	protected static void startMainLoop() throws IOException, NoSuchAlgorithmException {
 		keepAlive = true;
 		while(keepAlive) {
+			if (mainInstance == null) {
+				updateEC2InstanceForMainInstance();
+			}
 			if (credentials == null) {
 				System.out.println("Waiting for AWS credentials, cannot start yet");
 				continue;
 			}
-			if (!isShadow && !isShadowDeployed()) {
+			if (!behaveAsShadow() && !isShadowDeployed()) {
 				deployShadow();
 			}
 			if(!isAppOrchestratorDeployed()) {
 				deployAppOrchestrator();
 			}
-			if (isShadow) {
-				System.out.println("Do something useful here for the shadow instance, like checking the main instance");
-				verifyMainInstanceAlive();
+			if (behaveAsShadow()) {
+				if(!isMainInstanceAlive()) {
+					replaceMain = true;
+					if(mainInstanceStopAttempted == false) {
+						mainInstanceStopAttempted = true;
+						stopEC2Instance(mainInstance.getInstanceId());
+					}
+					else {
+						if (mainInstanceStartAttempted == false) {
+							if (isStopped(mainInstance.getInstanceId())) {
+								mainInstanceStartAttempted = true;
+								startEC2Instance(mainInstance.getInstanceId());
+							}
+						}
+						else {
+							if(mainInstanceRedeployAttempted == false) {
+								mainInstanceRedeployAttempted = true;
+								String previousMainInstanceId = mainInstance.getInstanceId();
+								mainInstance = deployDefaultEC2("", "cloudcomputing");
+								// termination of non-working EC2 instance is not verified
+								// it might still be running in AWS which can be checked in AWS Console
+								terminateEC2(previousMainInstanceId);
+							}
+						}
+					}
+				}
+				else {
+					if(replaceMain == true) {
+						// reset all flags since the main instance is working correctly
+						mainInstanceStopAttempted = false;
+						mainInstanceRedeployAttempted = false;
+						replaceMain = false;
+					}
+				}
 			}
 			else{
 				System.out.println("Do something useful here for the main instance, like monitoring");
@@ -103,22 +150,47 @@ public class MainInstance {
 		}
 	}
 
-	/**
-	 * Verifies that the main instance is still alive. 
-	 * 
-	 * Also starts the recovery process if not alive.
-	 * First, it will try to restart the main loop through the API.
-	 * Then, it will try to restart the instance using the AWS API.
-	 * If that also fails, it will try to re-deploy the main instance.
-	 * 
-	 * Note that redeploying will provision the instance with a new public DNS name
-	 * which needs to be retrieved from the AWS console in order to access the instance. 
-	 * The "cloudcomputing" keypair will still be added so the instance should still be
-	 * accessible to those that could previously access the main instance.
-	 */
-	private static void verifyMainInstanceAlive() {
-		// TODO Auto-generated method stub
-		
+	private static void startEC2Instance(String instanceId) {
+		client.startInstances(new StartInstancesRequest().withInstanceIds(instanceId));
+	}
+
+	private static boolean isStopped(String instanceId) {
+		Instance stoppingInstance = retrieveEC2InstanceWithId(instanceId);
+		if (stoppingInstance.getState().getCode() == INSTANCE_STOPPED) {
+			return true;
+		}
+		return false;
+	}
+
+	private static void stopEC2Instance(String instanceId) {
+		client.stopInstances(new StopInstancesRequest().withInstanceIds(instanceId));
+	}
+
+	private static void terminateEC2(String instanceId) {
+		client.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceId));
+	}
+
+	private static void updateEC2InstanceForMainInstance() {
+		mainInstance = retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
+	}
+
+	private static Instance retrieveEC2InstanceWithId(String instanceId) {
+		return client.describeInstances(new DescribeInstancesRequest()
+				.withInstanceIds(instanceId))
+				.getReservations().get(0)
+				.getInstances().get(0);
+	}
+
+	private static boolean isMainInstanceAlive() {
+		updateEC2InstanceForMainInstance();
+		int httpStatus = healthCheckOnInstance(mainInstance);
+		return mainInstance.getState().getCode() == INSTANCE_RUNNING && httpStatus == 204;
+	}
+
+	private static int healthCheckOnInstance(Instance instance) {
+		URI mainInstanceHealth = UriBuilder.fromUri(instance.getPublicDnsName()).path("health").build();
+		int httpStatus = ClientBuilder.newClient().target(mainInstanceHealth).request().get().getStatus();
+		return httpStatus;
 	}
 
 	public static boolean isAlive() {
@@ -141,8 +213,8 @@ public class MainInstance {
 		return appOrchestrator != null;
 	}
 
-	public static boolean isShadow() {
-		return isShadow;
+	public static boolean behaveAsShadow() {
+		return isShadow && !replaceMain;
 	}
 
 	public static void setShadow(boolean isShadow) {
@@ -157,19 +229,21 @@ public class MainInstance {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws IOException if the userdata script can not be read
 	 */
-	public static Instance deployDefaultEC2(String usageTag) throws NoSuchAlgorithmException {
+	public static Instance deployDefaultEC2(String usageTag, String keyPairName) throws NoSuchAlgorithmException {
 		ensureJavaKeyPairExists();
 		RunInstancesRequest runInstancesRequest = new RunInstancesRequest(AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804, 1, 1)
 				.withInstanceType(InstanceType.T2Micro)
-				.withKeyName(AWS_KEYPAIR_NAME)
-				.withUserData(getUserData())
-				.withTagSpecifications(
-						new TagSpecification()
-						.withResourceType(ResourceType.Instance)
-						.withTags(
-								new Tag()
-								.withKey("Usage")
-								.withValue(usageTag)));
+				.withKeyName(keyPairName)
+				.withUserData(getUserData());
+		if (usageTag != null && !usageTag.isEmpty()) {
+			runInstancesRequest.withTagSpecifications(
+					new TagSpecification()
+					.withResourceType(ResourceType.Instance)
+					.withTags(
+							new Tag()
+							.withKey("Usage")
+							.withValue(usageTag)));
+		}
 		RunInstancesResult runInstancesResult = client.runInstances(runInstancesRequest);
 		String deployedInstanceId = runInstancesResult.getReservation().getInstances().get(0).getInstanceId();
 		// wait up to 1 minute for the instance to run
@@ -204,11 +278,7 @@ public class MainInstance {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			int state = client.describeInstances(new DescribeInstancesRequest().withInstanceIds(deployedInstanceId))
-					.getReservations().get(0)
-					.getInstances().get(0)
-					.getState()
-					.getCode();
+			int state = getInstanceState(deployedInstanceId);
 			if (state == INSTANCE_PENDING) {
 				continue;
 			}
@@ -222,6 +292,15 @@ public class MainInstance {
 			}
 			throw new IllegalStateException(ERROR_INCORRECTLY_DEPLOYED);
 		}
+	}
+
+	private static int getInstanceState(String deployedInstanceId) {
+		int state = client.describeInstances(new DescribeInstancesRequest().withInstanceIds(deployedInstanceId))
+				.getReservations().get(0)
+				.getInstances().get(0)
+				.getState()
+				.getCode();
+		return state;
 	}
 
 	private static boolean verifyStatusChecksPassed(String deployedInstanceId) {
@@ -250,7 +329,7 @@ public class MainInstance {
 	}
 
 	private static void deployShadow() throws IOException, NoSuchAlgorithmException {
-		shadow = deployDefaultEC2("shadow");
+		shadow = deployDefaultEC2("shadow", AWS_KEYPAIR_NAME);
 		System.out.println("Shadow deployed");
 		copyApplicationToDeployedInstance(Paths.get("~/main-instance.jar").toFile(), shadow);
 		startDeployedApplication(shadow);
@@ -284,7 +363,7 @@ public class MainInstance {
 	
 	private static void deployAppOrchestrator() throws IOException, NoSuchAlgorithmException {
 		ensureJavaKeyPairExists();
-		appOrchestrator = deployDefaultEC2("App Orchestrator");
+		appOrchestrator = deployDefaultEC2("App Orchestrator", AWS_KEYPAIR_NAME);
 		System.out.println("App Orchestrator deployed");
 		copyApplicationToDeployedInstance(Paths.get("~/app-orchestrator.jar").toFile(), appOrchestrator);
 		startDeployedApplication(appOrchestrator);
@@ -383,5 +462,13 @@ public class MainInstance {
 			System.out.println(datapoint.getAverage());
 		}
 		return metricDatapoints;
+	}
+
+	public static Instance getMainInstance() {
+		return mainInstance;
+	}
+
+	public static void setMainInstance(Instance mainInstance) {
+		MainInstance.mainInstance = mainInstance;
 	}
 }
