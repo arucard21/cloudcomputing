@@ -99,5 +99,17 @@ task deployApplication(){
 						"ubuntu@${awsInstanceURL}", 
 						"nohup java -jar ~/main-instance.jar > ~/main-instance.log 2>&1 &"
 		}
+		exec{
+			println "Waiting for application to start"
+			commandLine "sleep", "15s"
+		}
+		exec {
+			println "Uploading AWS credentials"
+			commandLine "curl", 
+						"--silent",
+						"--header", "Content-Type: application/json",
+						"--data-binary", /{"accessKey": "${aws_access_key_id}", "secretKey": "${aws_secret_access_key}"}/, 
+						"${awsInstanceURL}:8080/main/credentials"
+		}
 	}
 }
