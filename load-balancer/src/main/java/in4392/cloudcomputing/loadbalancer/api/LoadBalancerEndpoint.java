@@ -40,8 +40,8 @@ public class LoadBalancerEndpoint {
 	@Path("")
 	@GET
 	public Response getInstanceResponse() {
-		incrementIndex();
 		checkSufficientFreeInstances();
+		incrementIndex();
 		Target curTarget = targets.get(index);
 		curTarget.incrementCurrentAmountOfRequests();
 		if (curTarget.getCurrentAmountOfRequests() == MAX_REQUESTS_PER_INSTANCE) {
@@ -50,8 +50,11 @@ public class LoadBalancerEndpoint {
 		return ClientBuilder.newClient().target(curTarget.getTargetURI()).request().get();
 	}
 	
-	private void incrementIndex() {
-		// TODO increment the index to the next available Target 
+	public int incrementIndex() {
+		do {
+			index++;
+		}while (targets.get(index).isFree());
+		return index;
 	}
 	
 	/**
