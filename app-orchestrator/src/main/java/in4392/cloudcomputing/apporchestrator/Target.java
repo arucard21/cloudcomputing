@@ -2,22 +2,24 @@ package in4392.cloudcomputing.apporchestrator;
 
 import java.net.URI;
 
+import com.amazonaws.services.ec2.model.Instance;
+
 public class Target {
-	private String targetURI;
+	private Instance targetInstance;
 	private boolean isFree;
 	private int currentAmountOfRequests;
 
-	public Target(String targetURI, boolean isFree, int currentAmountOfRequests) {
+	public Target(Instance targetInstance, boolean isFree, int currentAmountOfRequests) {
 		super();
-		this.targetURI = targetURI;
+		this.targetInstance = targetInstance;
 		this.isFree = isFree;
 		this.setCurrentAmountOfRequests(currentAmountOfRequests);
 	}
-	public String getTargetURI() {
-		return targetURI;
+	public Instance getTargetInstance() {
+		return targetInstance;
 	}
-	public void setTargetURI(String targetURI) {
-		this.targetURI = targetURI;
+	public void setTargetInstance(Instance targetInstance) {
+		this.targetInstance = targetInstance;
 	}
 	public boolean isFree() {
 		return isFree;

@@ -1,12 +1,16 @@
 package in4392.cloudcomputing.apporchestrator.api;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+
 import javax.inject.Named;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -19,6 +23,7 @@ import in4392.cloudcomputing.apporchestrator.EC2;
 @Path("application-orchestrator")
 @Produces(MediaType.APPLICATION_JSON)
 public class AppOrchestratorEndpoint {
+	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
 	/**
 	 * 
 	 * @return a 204 HTTP status with no content, if successful
@@ -57,19 +62,33 @@ public class AppOrchestratorEndpoint {
 	
 	
 	/**
-	 * might this be unnecessary
-	 * @param amount
-	 * @return
+	 * This is for sending the least loaded to the LoadBalancer
+	 * Please check it guys, cause I am still experimenting with the api requests
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
 	 */
+	@Path("")
 	@POST
-	@Path("application-instances")
-	@Consumes(MediaType.APPLICATION_JSON)
-	public Response requestNewInstances(int amount) {
-		//TODO create the requested amount of instances
-		
-		
+	public Response sendLeastLoaded() throws NoSuchAlgorithmException, IOException{
+		String minId = AppOrchestrator.findLeastLoadedAppInstance();
+		ClientBuilder.newClient()
+					 .target(AppOrchestrator.getLoadBalancerURI())
+					 .request()
+					 .post(Entity.entity(minId, MediaType.APPLICATION_JSON));
+		int currentRequests = AppOrchestrator.incrementRequests(minId);
+		if (currentRequests == MAX_REQUESTS_PER_INSTANCE) 
+			AppOrchestrator.setInstanceFreeStatus(minId, false);
 		return Response.ok().build();
 	}
+	
+	/**
+	 * TODO method for receiving response from the LoadBalancer that the request has been 
+	 * transferred and completed so the currentRequests counter can be decremented
+	 */
+	public Response notificationForCompletedRequest() {
+		return Response.ok().build();
+	}
+	
 	
 	/**
 	 * Set the credentials for the main instance. 
