@@ -1,7 +1,13 @@
 package in4392.cloudcomputing.apporchestrator.api;
 
 import java.io.IOException;
+
 import java.security.NoSuchAlgorithmException;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Collection;
 
 import javax.inject.Named;
 import javax.ws.rs.GET;
@@ -15,9 +21,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.ec2.model.Instance;
 
 import in4392.cloudcomputing.apporchestrator.AppOrchestrator;
 import in4392.cloudcomputing.apporchestrator.EC2;
+import in4392.cloudcomputing.apporchestrator.Target;
 
 @Named
 @Path("application-orchestrator")
@@ -32,6 +40,25 @@ public class AppOrchestratorEndpoint {
 	@GET
 	public Response healthCheck() {
 		return Response.noContent().build();
+	}
+
+	@Path("log")
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	public String showLog() throws IOException {
+		return new String(Files.readAllBytes(Paths.get("/home/ubuntu/app-orchestrator.log")), StandardCharsets.UTF_8);
+	}
+	
+	@Path("instances/load-balancer")
+	@GET
+	public Instance describeMainInstance() {
+		return AppOrchestrator.getLoadBalancer();
+	}
+	
+	@Path("instances/applications")
+	@GET
+	public Collection<Target> describeApplications() {
+		return AppOrchestrator.getApplicationEC2Instances().values();
 	}
 
 	/**

@@ -8,10 +8,6 @@ plugins {
 	id "jp.classmethod.aws.ec2" version "0.38"
 }
 
-repositories {
-    mavenCentral()
-}
-
 subprojects{
 	apply plugin: "java"
 	apply plugin: "eclipse"
@@ -23,6 +19,39 @@ subprojects{
 	
 	repositories {
 	    mavenCentral()
+	}
+	
+	test {
+		useJUnitPlatform()
+	}
+	
+	sourceSets {
+		systemTest {
+			java {
+				compileClasspath += main.output + test.output
+				runtimeClasspath += main.output + test.output
+			}
+		}
+	}
+	
+	configurations {
+		systemTestCompile.extendsFrom testCompile
+		systemTestRuntime.extendsFrom testRuntime
+	}
+	
+	eclipse {
+		classpath {
+			plusConfigurations += [configurations.systemTestCompile]
+		}
+	}
+	
+	task systemTest(type:Test){
+		if(project.hasProperty("mainInstanceHostname")){
+			useJUnitPlatform()
+			systemProperty "instance.url", project.property("mainInstanceHostname")
+			testClassesDirs = project.sourceSets.systemTest.output.classesDirs
+			classpath = project.sourceSets.systemTest.runtimeClasspath
+		}
 	}
 	
 	dependencyManagement {
@@ -38,6 +67,12 @@ subprojects{
 	    compile ("com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.7")
 	    compile ("javax.inject:javax.inject:1")
 	    compile ("com.hierynomus:sshj:0.26.0")
+	    
+		testCompile ("org.mockito:mockito-core:2.22.0")
+		testCompile ("org.mockito:mockito-junit-jupiter:2.22.0")
+		testCompile ("org.junit.jupiter:junit-jupiter-api:5.3.1")
+		testCompile ("org.junit.jupiter:junit-jupiter-engine:5.3.1")
+		testCompile ("org.junit.platform:junit-platform-launcher:1.3.1")
 	}
 }
 
@@ -64,7 +99,6 @@ task terminateEC2Instance(type: AmazonEC2TerminateInstanceTask) {
 task waitInstanceStatusStable(type: AmazonEC2WaitInstanceStatusTask) {
 	if(project.hasProperty("instanceID")){
 		instanceId = project.property("instanceID")
-
 		doLast {
 			println "Access instance with: ssh ubuntu@" + awsInstance.getPublicDnsName()
 			awsInstanceURL = awsInstance.getPublicDnsName()

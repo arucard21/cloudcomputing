@@ -2,7 +2,6 @@ package in4392.cloudcomputing.maininstance;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -10,8 +9,6 @@ import java.util.Arrays;
 import java.util.Base64;
 
 import javax.inject.Named;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.UriBuilder;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -79,12 +76,6 @@ public class EC2 {
 				.withInstanceIds(instanceId))
 				.getReservations().get(0)
 				.getInstances().get(0);
-	}
-
-	public static int healthCheckOnInstance(Instance instance) {
-		URI mainInstanceHealth = UriBuilder.fromUri(instance.getPublicDnsName()).path("health").build();
-		int httpStatus = ClientBuilder.newClient().target(mainInstanceHealth).request().get().getStatus();
-		return httpStatus;
 	}
 
 	/**

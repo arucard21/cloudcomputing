@@ -1,5 +1,10 @@
 package in4392.cloudcomputing.maininstance.api;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -7,10 +12,12 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.ec2.model.Instance;
 
 import in4392.cloudcomputing.maininstance.MainInstance;
 
@@ -29,19 +36,6 @@ public class MainInstanceEndpoint {
 		return Response.noContent().build();
 	}
 
-	/**
-	 * 
-	 * @return a 200 HTTP status with a simple message, if successful
-	 */
-	@Path("start")
-	@GET
-	public Response startMain() {
-		if(!MainInstance.isAlive()) {
-			MainInstance.restartMainLoop();
-		}
-		return Response.ok(new SimpleStatus("The Main instance loop has been started")).build();
-	}
-	
 	/**
 	 * 
 	 * @return a 200 HTTP status with a simple message, if successful
@@ -88,5 +82,37 @@ public class MainInstanceEndpoint {
 			throw new InternalServerErrorException("This instance does not have credentials configured");
 		}
 		return Response.ok(new SimpleStatus("This instance has credentials configured")).build();
+	}
+	
+	@Path("log")
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	public String showLog() throws IOException {
+		return new String(Files.readAllBytes(Paths.get("/home/ubuntu/main-instance.log")), StandardCharsets.UTF_8);
+	}
+	
+	@Path("instances/main")
+	@GET
+	public Instance describeMainInstance() {
+		return MainInstance.getMainInstance();
+	}
+	
+	@Path("instances/shadow")
+	@GET
+	public Instance describeShadowInstance() {
+		return MainInstance.getShadow();
+	}
+	
+	@Path("instances/application-orchestrator")
+	@GET
+	public Instance describeApplicationOrchestrator() {
+		return MainInstance.getAppOrchestrator();
+	}
+	
+	@Path("shadow")
+	@GET
+	public Response configureInstanceAsShadow(@QueryParam("shadow") boolean shadow) {
+		MainInstance.setShadow(shadow);
+		return Response.ok().build();
 	}
 }
