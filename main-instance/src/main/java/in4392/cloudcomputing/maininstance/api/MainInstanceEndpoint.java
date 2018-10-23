@@ -16,6 +16,8 @@ import in4392.cloudcomputing.maininstance.MainInstance;
 
 @Named
 @Path("main")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class MainInstanceEndpoint {
 	/**
 	 * 
@@ -23,7 +25,6 @@ public class MainInstanceEndpoint {
 	 */
 	@Path("health")
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
 	public Response healthCheck() {
 		return Response.noContent().build();
 	}
@@ -34,8 +35,7 @@ public class MainInstanceEndpoint {
 	 */
 	@Path("start")
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response startMain()  {
+	public Response startMain() {
 		if(!MainInstance.isAlive()) {
 			MainInstance.restartMainLoop();
 		}
@@ -48,7 +48,6 @@ public class MainInstanceEndpoint {
 	 */
 	@Path("stop")
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
 	public Response stopMain() {
 		if(MainInstance.isAlive()) {
 			MainInstance.stopMainLoop();
@@ -67,11 +66,11 @@ public class MainInstanceEndpoint {
 	 * @param credentials is the object representing the deserialized JSON from the incoming HTTP request 
 	 * @return a 200 HTTP status with a simple message, if successful
 	 */
-	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("credentials")
 	@POST
-	public Response setAWSCredentials(BasicAWSCredentials credentials) {
-		MainInstance.setCredentials(credentials);
+	public Response setAWSCredentials(SimpleAWSCredentials credentials) {
+		BasicAWSCredentials awsCredentials = new BasicAWSCredentials(credentials.getAccessKey(), credentials.getSecretKey());
+		MainInstance.setCredentials(awsCredentials);
 		return Response.ok(new SimpleStatus("The credentials have been set")).build();
 	}
 	
@@ -82,7 +81,6 @@ public class MainInstanceEndpoint {
 	 * If the credentials are not available, this will return a 500 HTTP status. In this case, the credentials
 	 * can be provided with a POST request to "main/credentials".
 	 */
-	@Produces(MediaType.APPLICATION_JSON)
 	@Path("credentials")
 	@GET
 	public Response checkAWSCredentials() {

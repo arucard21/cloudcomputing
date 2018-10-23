@@ -33,7 +33,9 @@ subprojects{
 	
 	dependencies {
 	    compile ("com.amazonaws:aws-java-sdk-ec2")
+	    compile ("com.amazonaws:aws-java-sdk-cloudwatch")
 	    compile ("org.apache.cxf:cxf-spring-boot-starter-jaxrs:3.2.6")
+	    compile ("com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.7")
 	    compile ("javax.inject:javax.inject:1")
 	    compile ("com.hierynomus:sshj:0.26.0")
 	}
@@ -79,6 +81,7 @@ task(uploadBootJarFiles){
 			println "Copying app-orchestrator, load-balancer and main-instance to the EC2 instance"
 			commandLine "scp", 
 						"-o", "stricthostkeychecking=no", 
+						"application/build/libs/application.jar",
 						"app-orchestrator/build/libs/app-orchestrator.jar", 
 						"load-balancer/build/libs/load-balancer.jar", 
 						"main-instance/build/libs/main-instance.jar", 
@@ -96,6 +99,15 @@ task deployApplication(){
 						"-o", "stricthostkeychecking=no", 
 						"ubuntu@${awsInstanceURL}", 
 						"nohup java -jar ~/main-instance.jar > ~/main-instance.log 2>&1 &"
+		}
+		sleep(15 * 1000)
+		exec {
+			println "Uploading AWS credentials"
+			commandLine "curl", 
+						"--silent",
+						"--header", "Content-Type: application/json",
+						"--data-binary", /{"accessKey": "${aws_access_key_id}", "secretKey": "${aws_secret_access_key}"}/, 
+						"${awsInstanceURL}:8080/main/credentials"
 		}
 	}
 }
