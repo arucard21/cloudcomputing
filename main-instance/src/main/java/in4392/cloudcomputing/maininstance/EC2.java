@@ -13,7 +13,10 @@ import javax.inject.Named;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.UriBuilder;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.DeleteKeyPairRequest;
 import com.amazonaws.services.ec2.model.DescribeInstanceStatusRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
@@ -49,6 +52,7 @@ public class EC2 {
 	private static final int INSTANCE_RUNNING = 16;
 	private static final int INSTANCE_STOPPED = 80;
 	private static AmazonEC2 client;
+	private static AWSCredentials credentials;
 	private static KeyPair javaKeyPair;
 	
 	public static void startEC2Instance(String instanceId) {
@@ -234,5 +238,19 @@ public class EC2 {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static AmazonEC2 getClient() {
+		return client;
+	}
+
+	public static AWSCredentials getCredentials() {
+		return credentials;
+	}
+
+	public static void setCredentials(AWSCredentials credentials) {
+		EC2.credentials = credentials;
+		AWSStaticCredentialsProvider staticCredentialsProvider = new AWSStaticCredentialsProvider(credentials);
+		client = AmazonEC2ClientBuilder.standard().withCredentials(staticCredentialsProvider).build();
 	}
 }

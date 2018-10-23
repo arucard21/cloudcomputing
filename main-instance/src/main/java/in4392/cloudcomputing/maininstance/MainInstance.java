@@ -23,8 +23,6 @@ import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
 import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Instance;
@@ -41,11 +39,9 @@ public class MainInstance {
 	private static Instance appOrchestrator;
 	private static boolean isShadow;
 	private static boolean replaceMain;
-	private static AmazonEC2 client;
 	private static AmazonCloudWatch cloudWatch;
 	private static final List<String> metricNames = Arrays.asList("CPUUtilization", "NetworkIn", "NetworkOut", "DiskReadOps", "DiskWriteOps");
 	private static Map<String, InstanceMetrics> metricsForInstances = new HashMap<>();
-	private static AWSCredentials credentials;
 	private static boolean mainInstanceStopAttempted = false;
 	private static boolean mainInstanceStartAttempted = false;
 	private static boolean mainInstanceRedeployAttempted = false;
@@ -62,7 +58,7 @@ public class MainInstance {
 	protected static void startMainLoop() throws IOException, NoSuchAlgorithmException {
 		keepAlive = true;
 		while(keepAlive) {
-			if (credentials == null) {
+			if (EC2.getCredentials() == null) {
 				System.out.println("Waiting for AWS credentials, cannot start yet");
 			}
 			else {
@@ -189,13 +185,12 @@ public class MainInstance {
 	}
 
 	public static AWSCredentials getCredentials() {
-		return credentials;
+		return EC2.getCredentials();
 	}
 
 	public static void setCredentials(AWSCredentials credentials) {
-		MainInstance.credentials = credentials;
+		EC2.setCredentials(credentials);
 		AWSStaticCredentialsProvider staticCredentialsProvider = new AWSStaticCredentialsProvider(credentials);
-		client = AmazonEC2ClientBuilder.standard().withCredentials(staticCredentialsProvider).build();
 		cloudWatch = AmazonCloudWatchClientBuilder.standard().withCredentials(staticCredentialsProvider).build();
 	}
 	
@@ -214,7 +209,7 @@ public class MainInstance {
 		// a user request, measured by the Load Balancer again
 
 		while (true) {
-			DescribeInstancesResult response = client.describeInstances(request);
+			DescribeInstancesResult response = EC2.getClient().describeInstances(request);
 
 			for (Reservation reservation : response.getReservations()) {
 				for (Instance instance : reservation.getInstances()) {
