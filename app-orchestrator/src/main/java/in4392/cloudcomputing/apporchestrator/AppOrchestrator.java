@@ -215,4 +215,12 @@ public class AppOrchestrator {
 			e.printStackTrace();
 		}
 	}
+
+	public static Instance getLoadBalancer() {
+		return loadBalancer;
+	}
+
+	public static Map<String, Instance> getApplicationEC2Instances() {
+		return applicationEC2Instances;
+	}
 }

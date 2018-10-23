@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collection;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -16,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.ec2.model.Instance;
 
 import in4392.cloudcomputing.apporchestrator.AppOrchestrator;
 import in4392.cloudcomputing.apporchestrator.EC2;
@@ -39,6 +41,18 @@ public class AppOrchestratorEndpoint {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String showLog() throws IOException {
 		return new String(Files.readAllBytes(Paths.get("/home/ubuntu/app-orchestrator.log")), StandardCharsets.UTF_8);
+	}
+	
+	@Path("instances/load-balancer")
+	@GET
+	public Instance describeMainInstance() {
+		return AppOrchestrator.getLoadBalancer();
+	}
+	
+	@Path("instances/applications")
+	@GET
+	public Collection<Instance> describeApplications() {
+		return AppOrchestrator.getApplicationEC2Instances().values();
 	}
 
 	/**
