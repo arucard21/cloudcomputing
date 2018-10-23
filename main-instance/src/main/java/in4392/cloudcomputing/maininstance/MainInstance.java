@@ -411,9 +411,13 @@ public class MainInstance {
 		URI appOrchestratorDescribeApplications = appOrchestratorDescribeBase.path("applications").build();
 		Client client = ClientBuilder.newClient().register(JacksonJsonProvider.class);
 		Instance loadBalancer = client.target(appOrchestratorDescribeLoadBalancer).request().get(Instance.class);
-		instanceIds.add(loadBalancer.getInstanceId());
+		if(loadBalancer != null) {			
+			instanceIds.add(loadBalancer.getInstanceId());
+		}
 		Collection<Instance> applications = client.target(appOrchestratorDescribeApplications).request().get(new GenericType<Collection<Instance>>(new TypeReference<Collection<Instance>>() {}.getType()));
-		applications.forEach((instance) -> instanceIds.add(instance.getInstanceId()));
+		if(applications != null && !applications.isEmpty()) {
+			applications.forEach((instance) -> instanceIds.add(instance.getInstanceId()));
+		}
 		return instanceIds;
 	}
 
