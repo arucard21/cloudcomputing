@@ -16,21 +16,43 @@ import in4392.cloudcomputing.apporchestrator.AppOrchestrator;
 import in4392.cloudcomputing.apporchestrator.EC2;
 
 @Named
-@Path("main")
+@Path("application-orchestrator")
 @Produces(MediaType.APPLICATION_JSON)
 public class AppOrchestratorEndpoint {
+	/**
+	 * 
+	 * @return a 204 HTTP status with no content, if successful
+	 */
 	@Path("health")
 	@GET
 	public Response healthCheck() {
 		return Response.noContent().build();
 	}
 
+	/**
+	 * 
+	 * @return a 200 HTTP status with a simple message, if successful
+	 */
+	@Path("start")
+	@GET
+	public Response startMain() {
+		if(!AppOrchestrator.isAlive()) {
+			AppOrchestrator.restartMainLoop();
+		}
+		return Response.ok(new SimpleStatus("The Main instance loop has been started")).build();
+	}
+	
+	/**
+	 * 
+	 * @return a 200 HTTP status with a simple message, if successful
+	 */
 	@Path("stop")
 	@GET
-	public String stopMain() throws Exception {
-		AppOrchestrator.destroy();
-		// maybe the VM can be destroyed as well
-		return "stopped main instance application but the VM is still running";
+	public Response stopMain() {
+		if(AppOrchestrator.isAlive()) {
+			AppOrchestrator.stopMainLoop();
+		}
+		return Response.ok(new SimpleStatus("The Main instance loop has been stopped")).build();
 	}
 	
 	
@@ -40,7 +62,7 @@ public class AppOrchestratorEndpoint {
 	 * @return
 	 */
 	@POST
-	@Path("")
+	@Path("application-instances")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response requestNewInstances(int amount) {
 		//TODO create the requested amount of instances

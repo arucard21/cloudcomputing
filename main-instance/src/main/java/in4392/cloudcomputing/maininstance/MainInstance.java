@@ -33,6 +33,7 @@ import com.amazonaws.util.EC2MetadataUtils;
 public class MainInstance {
 	private static final String AWS_KEYPAIR_NAME = "accessibleFromMainInstance";
 	private static final int INSTANCE_RUNNING = 16;
+	private static final int ITERATION_WAIT_TIME = 60 * 1000;
 	private static boolean keepAlive;
 	private static Instance mainInstance;
 	private static Instance shadow;
@@ -83,7 +84,7 @@ public class MainInstance {
 					monitor();
 				}
 			}
-			EC2.waitUntilNextIteration();
+			waitUntilNextIteration();
 		}
 	}
 
@@ -275,5 +276,16 @@ public class MainInstance {
 
 	public static void setMainInstance(Instance mainInstance) {
 		MainInstance.mainInstance = mainInstance;
+	}
+	
+	/**
+	 * Wait a specific amount of time before
+	 */
+	public static void waitUntilNextIteration() {
+		try {
+			Thread.sleep(ITERATION_WAIT_TIME);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 }

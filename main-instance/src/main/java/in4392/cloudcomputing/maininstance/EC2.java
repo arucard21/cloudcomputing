@@ -47,7 +47,6 @@ public class EC2 {
 	private static final String AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804 = "ami-0a2ca21adb4a04084";
 	private static final String ERROR_INCORRECTLY_DEPLOYED = "The newly deployed EC2 instance did not start correctly. You may need to manually verify and correct this";
 	private static final String ERROR_STATUS_CHECKS_NOT_OK = "The newly deployed EC2 instance is running but some of the status checks may not have passed";
-	private static final int ITERATION_WAIT_TIME = 60 * 1000;
 	private static final int INSTANCE_PENDING = 0;
 	private static final int INSTANCE_RUNNING = 16;
 	private static final int INSTANCE_STOPPED = 80;
@@ -226,17 +225,6 @@ public class EC2 {
 			if (command.getExitStatus() != 0) {
 				System.out.println(applicationName + " was not started correctly with the command: " + remoteCommand);
 			}
-		}
-	}
-	
-	/**
-	 * Wait a specific amount of time before
-	 */
-	public static void waitUntilNextIteration() {
-		try {
-			Thread.sleep(ITERATION_WAIT_TIME);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 	}
 	

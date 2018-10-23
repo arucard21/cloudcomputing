@@ -19,10 +19,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.util.EC2MetadataUtils;
 
 @Named
 public class AppOrchestrator {
-	private static final int ITERATION_WAIT_TIME = 1000;
+	private static final int ITERATION_WAIT_TIME = 60 * 1000;
 	private static final int MIN_FREE_INSTANCES = 10;
 	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
 	private static final String AWS_KEYPAIR_NAME = "accessibleFromAppOrchestrator";
@@ -30,6 +31,7 @@ public class AppOrchestrator {
 	private static Queue<HttpServletRequest> requestsQueue = new LinkedList<>();
 	private static Instance loadBalancer;
 	private static Map<String, Instance> applicationEC2Instances = new HashMap<>();
+	private static Instance appOrchestrator;
 	
 	private static Target loadBalancerInstance;
 	private static List<Target> appInstances = new ArrayList<Target>();
@@ -171,23 +173,35 @@ public class AppOrchestrator {
 		}
 	}
 	
-	/**
-	 * run until stopped through API
-	 */
-	public static void run() {
-		// TODO do one-time things here
+	protected static void startMainLoop() throws IOException, NoSuchAlgorithmException {
 		keepAlive = true;
 		while(keepAlive) {
-			System.out.println("Do periodic things here");
+			if (EC2.getCredentials() == null) {
+				System.out.println("Waiting for AWS credentials, cannot start yet");
+			}
+			else {
+				if (appOrchestrator == null) {
+					updateEC2InstanceForMainInstance();
+				}
+				// do app-orchestrator things here
+			}
 			waitUntilNextIteration();
 		}
 	}
+	
+	private static void updateEC2InstanceForMainInstance() {
+		appOrchestrator = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
+	}
+	
+	public static boolean isAlive() {
+		return keepAlive;
+	}
 
-	/**
-	 * Stop the main loop on the running master instance
-	 */
-	public static void destroy() {
-		System.out.println("Destroying the Main Instance application");
+	public static void restartMainLoop() {
+		keepAlive = true;
+	}
+	
+	public static void stopMainLoop() {
 		keepAlive = false;
 	}
 
