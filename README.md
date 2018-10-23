@@ -21,5 +21,9 @@ The instance can be terminated through Gradle with:
 `./gradlew terminateEC2Instance -PinstanceID=<instanceID of deployed EC2 instance>`
 
 In order to deploy and start the main instance application, use the following Gradle task:
-`./gradlew deployApplication -PinstanceID=<Public DNS (IPv4) of your deployed AWS instance>`
+`./gradlew deployApplication -PinstanceID=<instanceID of deployed EC2 instance>`
 This will build the project, create the executable jar files, upload them to the EC2 instance and launch the main instance application.
+
+The experiments can be run with:
+`./gradlew systemTest -PmainInstanceHostname=<Public DNS (IPv4) of your deployed AWS instance running the Main Instance component>`
+All experiments are located in the main-instance project in the `systemTest` source set.

@@ -12,6 +12,7 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -35,19 +36,6 @@ public class MainInstanceEndpoint {
 		return Response.noContent().build();
 	}
 
-	/**
-	 * 
-	 * @return a 200 HTTP status with a simple message, if successful
-	 */
-	@Path("start")
-	@GET
-	public Response startMain() {
-		if(!MainInstance.isAlive()) {
-			MainInstance.restartMainLoop();
-		}
-		return Response.ok(new SimpleStatus("The Main instance loop has been started")).build();
-	}
-	
 	/**
 	 * 
 	 * @return a 200 HTTP status with a simple message, if successful
@@ -119,5 +107,12 @@ public class MainInstanceEndpoint {
 	@GET
 	public Instance describeApplicationOrchestrator() {
 		return MainInstance.getAppOrchestrator();
+	}
+	
+	@Path("shadow")
+	@GET
+	public Response configureInstanceAsShadow(@QueryParam("shadow") boolean shadow) {
+		MainInstance.setShadow(shadow);
+		return Response.ok().build();
 	}
 }

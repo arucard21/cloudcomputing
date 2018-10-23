@@ -8,7 +8,7 @@ plugins {
 	id "jp.classmethod.aws.ec2" version "0.38"
 }
 
-allprojects{
+subprojects{
 	apply plugin: "java"
 	apply plugin: "eclipse"
 	apply plugin: "org.springframework.boot"
