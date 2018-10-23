@@ -149,12 +149,20 @@ public class MainInstance {
 		return shadow != null;
 	}
 	
+	public static Instance getAppOrchestrator() {
+		return appOrchestrator;
+	}
+
 	public static boolean isAppOrchestratorDeployed() {
 		return appOrchestrator != null;
 	}
 
 	public static boolean behaveAsShadow() {
 		return isShadow && !replaceMain;
+	}
+
+	public static Instance getShadow() {
+		return shadow;
 	}
 
 	public static void setShadow(boolean isShadow) {

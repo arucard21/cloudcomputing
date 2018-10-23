@@ -8,11 +8,7 @@ plugins {
 	id "jp.classmethod.aws.ec2" version "0.38"
 }
 
-repositories {
-    mavenCentral()
-}
-
-subprojects{
+allprojects{
 	apply plugin: "java"
 	apply plugin: "eclipse"
 	apply plugin: "org.springframework.boot"
@@ -43,15 +39,18 @@ subprojects{
 		systemTestRuntime.extendsFrom testRuntime
 	}
 	
-	task systemTest(type:Test){
-		useJUnitPlatform()
-		testClassesDirs = project.sourceSets.systemTest.output.classesDirs
-		classpath = project.sourceSets.systemTest.runtimeClasspath
-	}
-	
 	eclipse {
 		classpath {
 			plusConfigurations += [configurations.systemTestCompile]
+		}
+	}
+	
+	task systemTest(type:Test){
+		if(project.hasProperty("mainInstanceHostname")){
+			useJUnitPlatform()
+			systemProperty "instance.url", project.property("mainInstanceHostname")
+			testClassesDirs = project.sourceSets.systemTest.output.classesDirs
+			classpath = project.sourceSets.systemTest.runtimeClasspath
 		}
 	}
 	
@@ -100,7 +99,6 @@ task terminateEC2Instance(type: AmazonEC2TerminateInstanceTask) {
 task waitInstanceStatusStable(type: AmazonEC2WaitInstanceStatusTask) {
 	if(project.hasProperty("instanceID")){
 		instanceId = project.property("instanceID")
-
 		doLast {
 			println "Access instance with: ssh ubuntu@" + awsInstance.getPublicDnsName()
 			awsInstanceURL = awsInstance.getPublicDnsName()

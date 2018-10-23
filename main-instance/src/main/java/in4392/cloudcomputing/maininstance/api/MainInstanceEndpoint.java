@@ -1,5 +1,10 @@
 package in4392.cloudcomputing.maininstance.api;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -11,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.ec2.model.Instance;
 
 import in4392.cloudcomputing.maininstance.MainInstance;
 
@@ -88,5 +94,30 @@ public class MainInstanceEndpoint {
 			throw new InternalServerErrorException("This instance does not have credentials configured");
 		}
 		return Response.ok(new SimpleStatus("This instance has credentials configured")).build();
+	}
+	
+	@Path("log")
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	public String showLog() throws IOException {
+		return new String(Files.readAllBytes(Paths.get("/home/ubuntu/main-instance.log")), StandardCharsets.UTF_8);
+	}
+	
+	@Path("instances/main")
+	@GET
+	public Instance describeMainInstance() {
+		return MainInstance.getMainInstance();
+	}
+	
+	@Path("instances/shadow")
+	@GET
+	public Instance describeShadowInstance() {
+		return MainInstance.getShadow();
+	}
+	
+	@Path("instances/application-orchestrator")
+	@GET
+	public Instance describeApplicationOrchestrator() {
+		return MainInstance.getAppOrchestrator();
 	}
 }
