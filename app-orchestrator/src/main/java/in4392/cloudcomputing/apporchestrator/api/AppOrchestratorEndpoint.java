@@ -1,5 +1,10 @@
 package in4392.cloudcomputing.apporchestrator.api;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -27,6 +32,13 @@ public class AppOrchestratorEndpoint {
 	@GET
 	public Response healthCheck() {
 		return Response.noContent().build();
+	}
+
+	@Path("log")
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	public String showLog() throws IOException {
+		return new String(Files.readAllBytes(Paths.get("/home/ubuntu/app-orchestrator.log")), StandardCharsets.UTF_8);
 	}
 
 	/**

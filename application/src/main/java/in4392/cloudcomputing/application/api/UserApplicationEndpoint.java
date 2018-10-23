@@ -1,8 +1,6 @@
 package in4392.cloudcomputing.application.api;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -10,6 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -32,6 +33,13 @@ public class UserApplicationEndpoint {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response healthCheck() {
 		return Response.noContent().build();
+	}
+	
+	@Path("log")
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	public String showLog() throws IOException {
+		return new String(Files.readAllBytes(Paths.get("/home/ubuntu/application.log")), StandardCharsets.UTF_8);
 	}
 	
 	@Path("video")

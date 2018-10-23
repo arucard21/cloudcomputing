@@ -1,6 +1,10 @@
 package in4392.cloudcomputing.loadbalancer.api;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +34,13 @@ public class LoadBalancerEndpoint {
 	@GET
 	public Response healthCheck() {
 		return Response.noContent().build();
+	}
+	
+	@Path("log")
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	public String showLog() throws IOException {
+		return new String(Files.readAllBytes(Paths.get("/home/ubuntu/load-balancer.log")), StandardCharsets.UTF_8);
 	}
 	
 	/**
