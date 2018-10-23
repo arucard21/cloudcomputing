@@ -64,7 +64,6 @@ task terminateEC2Instance(type: AmazonEC2TerminateInstanceTask) {
 task waitInstanceStatusStable(type: AmazonEC2WaitInstanceStatusTask) {
 	if(project.hasProperty("instanceID")){
 		instanceId = project.property("instanceID")
-		loopWait = 2
 
 		doLast {
 			println "Access instance with: ssh ubuntu@" + awsInstance.getPublicDnsName()
@@ -74,8 +73,8 @@ task waitInstanceStatusStable(type: AmazonEC2WaitInstanceStatusTask) {
 }
 
 task(uploadBootJarFiles){
-	dependsOn waitInstanceStatusStable
 	dependsOn subprojects.bootJar
+	dependsOn waitInstanceStatusStable
 	doLast{
 		exec {
 			println "Copying app-orchestrator, load-balancer and main-instance to the EC2 instance"
@@ -93,6 +92,8 @@ task(uploadBootJarFiles){
 task deployApplication(){
 	dependsOn uploadBootJarFiles
 	doLast{
+		// wait for java to be installed
+		sleep(60 * 1000)
 		exec {
 			println "Starting main-instance on the EC2 instance"
 			commandLine "ssh", 
@@ -100,7 +101,8 @@ task deployApplication(){
 						"ubuntu@${awsInstanceURL}", 
 						"nohup java -jar ~/main-instance.jar > ~/main-instance.log 2>&1 &"
 		}
-		sleep(15 * 1000)
+		// wait for application to fully start
+		sleep(30 * 1000)
 		exec {
 			println "Uploading AWS credentials"
 			commandLine "curl", 
