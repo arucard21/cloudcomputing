@@ -38,6 +38,8 @@ public class SystemExperiments {
 	public void shadowInstanceisAlive() throws URISyntaxException {
 		URI mainInstanceDescribeShadowURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("shadow").build();
 		Instance shadow = client.target(mainInstanceDescribeShadowURI).request().get(Instance.class);
+		Assertions.assertNotNull(shadow);
+		
 		URI shadowURI = new URI("http", shadow.getPublicDnsName(), null, null);
 		
 		URI shadowInstanceHealth = UriBuilder.fromUri(shadowURI).port(8080).path("main").path("health").build();
@@ -49,6 +51,8 @@ public class SystemExperiments {
 	public void applicationOrchestratorisAlive() throws URISyntaxException {
 		URI mainInstanceDescribeApplicationOrchestratorURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("application-orchestrator").build();
 		Instance applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
+		Assertions.assertNotNull(applicationOrchestrator);
+		
 		URI applicationOrchestratorURI = new URI("http", applicationOrchestrator.getPublicDnsName(), null, null);
 		
 		URI shadowInstanceHealth = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("health").build();
@@ -60,10 +64,13 @@ public class SystemExperiments {
 	public void loadBalancerisAlive() throws URISyntaxException {
 		URI mainInstanceDescribeApplicationOrchestratorURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("application-orchestrator").build();
 		Instance applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
+		Assertions.assertNotNull(applicationOrchestrator);
+		
 		URI applicationOrchestratorURI = new URI("http", applicationOrchestrator.getPublicDnsName(), null, null);
 		
 		URI appOrchestratorDescribeLoadBalancerURI = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("load-balancer").build();
 		Instance loadBalancer = client.target(appOrchestratorDescribeLoadBalancerURI).request().get(Instance.class);
+		Assertions.assertNotNull(loadBalancer);
 		URI loadBalancerURI = new URI("http", loadBalancer.getPublicDnsName(), null, null);
 		
 		URI loadBalancerHealth = UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("health").build();
@@ -75,10 +82,14 @@ public class SystemExperiments {
 	public void applicationsAreAlive() throws URISyntaxException {
 		URI mainInstanceDescribeApplicationOrchestratorURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("application-orchestrator").build();
 		Instance applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
+		Assertions.assertNotNull(applicationOrchestrator);
+		
 		URI applicationOrchestratorURI = new URI("http", applicationOrchestrator.getPublicDnsName(), null, null);
 		
 		URI appOrchestratorDescribeApplicationsURI = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("applications").build();
 		Collection<Instance> applications = client.target(appOrchestratorDescribeApplicationsURI).request().get(new GenericType<Collection<Instance>>(new TypeReference<Collection<Instance>>() {}.getType()));
+		Assertions.assertNotNull(applications);
+		Assertions.assertFalse(applications.isEmpty());
 		for (Instance application : applications) {
 			URI applicationURI = new URI("http", application.getPublicDnsName(), null, null);
 			URI applicationHealth = UriBuilder.fromUri(applicationURI).port(8080).path("application").path("health").build();
