@@ -28,12 +28,19 @@ import in4392.cloudcomputing.maininstance.MainInstance;
 public class MainInstanceEndpoint {
 	/**
 	 * 
-	 * @return a 204 HTTP status with no content, if successful
+	 * @return a 204 HTTP status with no content, if the main instance works correctly or
+	 * a 500 HTTP status code with no content, if not
+	 * 
 	 */
 	@Path("health")
 	@GET
 	public Response healthCheck() {
-		return Response.noContent().build();
+		if (MainInstance.isAlive()) {
+			return Response.noContent().build();
+		}
+		else {
+			return Response.serverError().build();
+		}
 	}
 
 	/**
@@ -111,8 +118,8 @@ public class MainInstanceEndpoint {
 	
 	@Path("shadow")
 	@GET
-	public Response configureInstanceAsShadow(@QueryParam("shadow") boolean shadow) {
-		MainInstance.setShadow(shadow);
+	public Response configureInstanceAsShadow(@QueryParam("mainInstanceId") String mainInstanceId) {
+		MainInstance.configureAsShadow(mainInstanceId);
 		return Response.ok().build();
 	}
 }
