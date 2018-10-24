@@ -95,17 +95,14 @@ public class AppOrchestratorEndpoint {
 	 * @throws IOException
 	 */
 	@Path("")
-	@POST
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response sendLeastLoaded() throws NoSuchAlgorithmException, IOException{
 		String minId = AppOrchestrator.findLeastLoadedAppInstance();
-		ClientBuilder.newClient()
-					 .target(AppOrchestrator.getLoadBalancerURI())
-					 .request()
-					 .post(Entity.entity(minId, MediaType.APPLICATION_JSON));
 		int currentRequests = AppOrchestrator.incrementRequests(minId);
 		if (currentRequests == MAX_REQUESTS_PER_INSTANCE) 
 			AppOrchestrator.setInstanceFreeStatus(minId, false);
-		return Response.ok().build();
+		return Response.ok().entity(minId).build();
 	}
 	
 	/**

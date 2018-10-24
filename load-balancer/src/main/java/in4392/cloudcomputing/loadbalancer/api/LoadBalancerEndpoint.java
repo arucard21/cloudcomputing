@@ -68,6 +68,7 @@ public class LoadBalancerEndpoint {
 		//	curTarget.setFree(false);
 		//}
 		//return ClientBuilder.newClient().target(UriBuilder.fromUri(curTarget.getTargetURI()).path("video").build()).request().post(Entity.entity(data, MediaType.APPLICATION_OCTET_STREAM));
+		System.out.println("Store input video to a stream");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		byte[] buffer = new byte[1024];
@@ -88,12 +89,14 @@ public class LoadBalancerEndpoint {
 		}
 
 		InputStream is = new ByteArrayInputStream(baos.toByteArray()); 
+		System.out.println("Requesting application instance from AppOrchestrator");
+		String instanceID = (String) ClientBuilder.newClient().target(appOrchestratorURI).request().get().getEntity();
 		System.out.println("Redirecting video to application server");
 		Response video = null ;
 		boolean flag = true;
 		while (flag) {
 			try {
-				 video = ClientBuilder.newClient().target(UriBuilder.fromUri("http://localhost:8090/application").path("video").build()).request(MediaType.APPLICATION_OCTET_STREAM).accept(MediaType.APPLICATION_OCTET_STREAM).post(Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM));
+				 video = ClientBuilder.newClient().target(UriBuilder.fromUri(instanceID).port(8080).path("video").build()).request(MediaType.APPLICATION_OCTET_STREAM).accept(MediaType.APPLICATION_OCTET_STREAM).post(Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM));
 				 flag = false;
 			} catch (Exception e) {
 				is = null;
@@ -103,6 +106,8 @@ public class LoadBalancerEndpoint {
 				} catch (InterruptedException e2) {
 					e2.printStackTrace();
 				}
+				System.out.println("Requesting application instance from AppOrchestrator");
+				instanceID = (String) ClientBuilder.newClient().target(appOrchestratorURI).request().get().getEntity();
 				System.out.println("Retrying connection");
 				is = new ByteArrayInputStream(baos.toByteArray()); 
 
@@ -112,63 +117,17 @@ public class LoadBalancerEndpoint {
 		return video;
 	}
 	
-	public int incrementIndex() {
-		do {
-			index++;
-		}while (targets.get(index).isFree());
-		return index;
-	}
-	
-	/**
-	 * add an instance to the LoadBalancer list
-	 * @param uri
-	 * TODO this may need to be a synchronized method, or we need to figure out how to do handle multiple requests
-	 * from multiple instances of this endpoint. 
-	 */
-	@POST
-	@Path("targets")
-	public Response addTarget(URI uri) {
-		for(Target target : targets) {
-			if (target.getTargetURI().equals(uri)) {
-				return Response.ok().build();
-			}
-		}
-		Target newTarget = new Target(uri, true, 0);
-		targets.add(newTarget);
-		return Response.ok().build();
-	}	
-	
-	/**
-	 * Delete an instance from the list of LoadBalancer
-	 * @param uri
-	 */
-	@DELETE
-	public Response removeTarget(URI uri) {
-		Target toBeRemoved = null;
-		for(Target target : targets) {
-			if (target.getTargetURI().equals(uri)) {
-				toBeRemoved = target;
-			}
-		}
-		if(toBeRemoved != null) {
-			targets.remove(toBeRemoved);
-		}
-		return Response.ok().build();
-	}
-	
-	public void checkSufficientFreeInstances() {
-		int count = 0;
-		for(Target target : targets) {
-			count = target.isFree() ? count + 1 : count;
-		}
-		if (count < MIN_FREE_INSTANCES) {
-			requestNewInstances(MIN_FREE_INSTANCES - count);	
-		}
-	}
 	
 	@Path("")
 	@POST
 	public void requestNewInstances(int num) {
 		ClientBuilder.newClient().target(appOrchestratorURI).request().post(Entity.entity(num, MediaType.APPLICATION_JSON));
+	}
+	
+	@Path("appOrcherstatorURI")
+	@POST
+	public Response setAppOrchestratorURI(String uri) {
+		this.appOrchestratorURI = UriBuilder.fromUri(uri).build();
+		return Response.ok().build();
 	}
 }

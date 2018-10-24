@@ -11,7 +11,10 @@ import java.util.Map;
 
 import javax.inject.Named;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.UriBuilder;
+
+import org.springframework.http.MediaType;
 
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.util.EC2MetadataUtils;
@@ -38,6 +41,7 @@ public class AppOrchestrator {
 		System.out.println("Starting Load Balancer application");
 		EC2.startDeployedApplication(loadBalancer, "load-balancer");
 		System.out.println("Load Balancer application started");
+		ClientBuilder.newClient().target(getLoadBalancerURI()).request().post(Entity.entity(appOrchestrator.getPublicDnsName(),MediaType.TEXT_PLAIN_VALUE));
 	}
 	
 	private static void deployApplication() throws IOException, NoSuchAlgorithmException {
