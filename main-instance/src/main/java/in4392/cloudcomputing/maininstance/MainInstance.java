@@ -45,8 +45,10 @@ import in4392.cloudcomputing.maininstance.api.SimpleAWSCredentials;
 
 @Named
 public class MainInstance {
+	private static final String TAG_REDEPLOYED_MAIN_INSTANCE = "Redeployed Main Instance";
+	private static final String TAG_APP_ORCHESTRATOR = "App Orchestrator";
+	private static final String TAG_SHADOW = "shadow";
 	private static final String AWS_KEYPAIR_NAME = "accessibleFromMainInstance";
-	private static final int INSTANCE_RUNNING = 16;
 	private static final int ITERATION_WAIT_TIME = 60 * 1000;
 	private static boolean keepAlive;
 	private static Instance mainInstance;
@@ -57,15 +59,6 @@ public class MainInstance {
 	private static AmazonCloudWatch cloudWatch;
 	private static final List<String> metricNames = Arrays.asList("CPUUtilization", "NetworkIn", "NetworkOut", "DiskReadOps", "DiskWriteOps");
 	private static Map<String, InstanceMetrics> metricsForInstances = new HashMap<>();
-	private static boolean mainInstanceStopAttempted = false;
-	private static boolean mainInstanceStartAttempted = false;
-	private static boolean mainInstanceRedeployAttempted = false;
-	private static boolean shadowInstanceStopAttempted = false;
-	private static boolean shadowInstanceStartAttempted = false;
-	private static boolean shadowInstanceRedeployAttempted = false;
-	private static boolean appOrchestratorStopAttempted = false;
-	private static boolean appOrchestratorStartAttempted = false;
-	private static boolean appOrchestratorRedeployAttempted = false;
 
 	/**
 	 * Start the main loop. 
@@ -73,6 +66,9 @@ public class MainInstance {
 	 * This will run continuously, executing an iteration every minute (defined by ITERATION_WAIT_TIME). 
 	 * The loop can be stopped and restarted through the API, with a GET request to 
 	 * "http:\<instanceURL\>:8080/main/start" or "http:\<instanceURL\>:8080/main/stop".
+	 * 
+	 * Note that you must configure the instance as shadow before providing the credentials.
+	 * 
 	 * @throws IOException 
 	 * @throws NoSuchAlgorithmException 
 	 * @throws URISyntaxException 
@@ -84,9 +80,10 @@ public class MainInstance {
 				System.out.println("Waiting for AWS credentials, cannot start yet");
 			}
 			else {
-				if (mainInstance == null) {
-					updateEC2InstanceForMainInstance();
-				}
+				updateEC2InstanceForMainInstance();
+				updateEC2InstanceForShadow();
+				updateEC2InstanceForAppOrchestrator();
+				
 				if (behaveAsShadow()) {
 					System.out.println("Checking main instance liveness from shadow");
 					checkMainInstanceLiveness();
@@ -112,137 +109,138 @@ public class MainInstance {
 		}
 	}
 
-	private static void checkMainInstanceLiveness() throws NoSuchAlgorithmException, URISyntaxException {
+	private static void checkMainInstanceLiveness() throws NoSuchAlgorithmException, URISyntaxException, IOException {
 		if(!isMainInstanceAlive()) {
 			recoverMainInstance();
 		}
-		else {
-			resetMainInstanceRecoveryFlags();
-		}
 	}
 	
-	private static void checkShadowInstanceLiveness() throws NoSuchAlgorithmException, URISyntaxException {
+	private static void checkShadowInstanceLiveness() throws NoSuchAlgorithmException, URISyntaxException, IOException {
 		if(!isShadowInstanceAlive()) {
 			recoverShadowInstance();
 		}
-		else {
-			resetShadowInstanceRecoveryFlags();
-		}
 	}
 	
-	private static void checkAppOrchestratorLiveness() throws NoSuchAlgorithmException, URISyntaxException {
+	private static void checkAppOrchestratorLiveness() throws NoSuchAlgorithmException, URISyntaxException, IOException {
 		if(!isAppOrchestratorAlive()) {
 			recoverAppOrchestrator();
 		}
-		else {
-			resetAppOrchestratorRecoveryFlags();
-		}
 	}
 
-	private static void resetMainInstanceRecoveryFlags() {
-		if(replaceMain == true) {
-			// reset all flags since the main instance is working correctly
-			mainInstanceStopAttempted = false;
-			mainInstanceStartAttempted = false;
-			mainInstanceRedeployAttempted = false;
-			replaceMain = false;
-		}
+	private static void recoverMainInstance() throws NoSuchAlgorithmException, IOException, URISyntaxException {
+		recoverInstance(mainInstance, "main");
 	}
 	
-	private static void resetShadowInstanceRecoveryFlags() {
-		if(shadowInstanceStopAttempted == true || shadowInstanceStartAttempted == true || shadowInstanceRedeployAttempted == true) {
-			shadowInstanceStopAttempted = false;
-			shadowInstanceStartAttempted = false;
-			shadowInstanceRedeployAttempted = false;
-		}
+	private static void recoverShadowInstance() throws NoSuchAlgorithmException, IOException, URISyntaxException {
+		recoverInstance(shadow, "shadow");
 	}
 	
-	private static void resetAppOrchestratorRecoveryFlags() {
-		if(appOrchestratorStopAttempted == true || appOrchestratorStartAttempted == true || appOrchestratorRedeployAttempted == true) {
-			appOrchestratorStopAttempted = false;
-			appOrchestratorStartAttempted = false;
-			appOrchestratorRedeployAttempted = false;
-		}
+	private static void recoverAppOrchestrator() throws NoSuchAlgorithmException, IOException, URISyntaxException {
+		recoverInstance(appOrchestrator, "appOrchestrator");
 	}
 
-	private static void recoverMainInstance() throws NoSuchAlgorithmException {
-		replaceMain = true;
-		if(mainInstanceStopAttempted == false) {
-			mainInstanceStopAttempted = true;
-			EC2.stopEC2Instance(mainInstance.getInstanceId());
+	/**
+	 * Recover an instance, after it has been detected to no longer be alive.
+	 * 
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	private static void recoverInstance(Instance brokenInstance, String brokenInstanceType) throws NoSuchAlgorithmException, IOException, URISyntaxException {
+		if (brokenInstance == null) {
+			redeployInstance(brokenInstance, brokenInstanceType);
+			return;
 		}
-		else {
-			if (mainInstanceStartAttempted == false) {
-				if (EC2.isStopped(mainInstance.getInstanceId())) {
-					mainInstanceStartAttempted = true;
-					EC2.startEC2Instance(mainInstance.getInstanceId());
-				}
-			}
-			else {
-				if(mainInstanceRedeployAttempted == false) {
-					mainInstanceRedeployAttempted = true;
-					String previousMainInstanceId = mainInstance.getInstanceId();
-					mainInstance = EC2.deployDefaultEC2("", "cloudcomputing");
-					// termination of non-working EC2 instance is not verified
-					// it might still be running in AWS which can be checked in AWS Console
-					EC2.terminateEC2(previousMainInstanceId);
-				}
-			}
-		}
-	}
-	
-	private static void recoverShadowInstance() throws NoSuchAlgorithmException {
-		if(shadowInstanceStopAttempted == false) {
-			shadowInstanceStopAttempted = true;
+		int brokenInstanceState = brokenInstance.getState().getCode();
+		if (brokenInstanceState == EC2.INSTANCE_RUNNING) {
 			EC2.stopEC2Instance(shadow.getInstanceId());
+			return;
 		}
-		else {
-			if (shadowInstanceStartAttempted == false) {
-				if (EC2.isStopped(shadow.getInstanceId())) {
-					shadowInstanceStartAttempted = true;
-					EC2.startEC2Instance(shadow.getInstanceId());
-				}
-			}
-			else {
-				if(shadowInstanceRedeployAttempted == false) {
-					shadowInstanceRedeployAttempted = true;
-					String previousShadowInstanceId = shadow.getInstanceId();
-					shadow = EC2.deployDefaultEC2("", "cloudcomputing");
-					// termination of non-working EC2 instance is not verified
-					// it might still be running in AWS which can be checked in AWS Console
-					EC2.terminateEC2(previousShadowInstanceId);
-				}
-			}
+		if (brokenInstanceState == EC2.INSTANCE_STOPPED) {
+			EC2.startEC2Instance(shadow.getInstanceId());
+			return;
 		}
+		if (brokenInstanceState == EC2.INSTANCE_TERMINATED) {
+			redeployInstance(brokenInstance, brokenInstanceType);
+			return;
+		}
+		/*
+		 * all other instance states are temporary and will eventually transition 
+		 * to either running, stopped or terminated state, so we do nothing and
+		 * wait for the instance to reach one of those states
+		 */
+		return;
 	}
 	
-	private static void recoverAppOrchestrator() throws NoSuchAlgorithmException {
-		if(appOrchestratorStopAttempted == false) {
-			appOrchestratorStopAttempted = true;
-			EC2.stopEC2Instance(appOrchestrator.getInstanceId());
+	private static void redeployInstance(Instance brokenInstance, String brokenInstanceType) throws NoSuchAlgorithmException, IOException, URISyntaxException {
+		String previousInstanceId = brokenInstance.getInstanceId();
+		switch(brokenInstanceType) {
+			case "main":
+				redeployMainInstance();
+				break;
+			case "shadow":
+				deployShadow();
+				break;
+			case "appOrchestrator":
+				deployAppOrchestrator();
+				break;
+			default:
+				System.err.println("Unknown type of instance provided, can not be redeployed");
 		}
-		else {
-			if (appOrchestratorStartAttempted == false) {
-				if (EC2.isStopped(appOrchestrator.getInstanceId())) {
-					appOrchestratorStartAttempted = true;
-					EC2.startEC2Instance(appOrchestrator.getInstanceId());
-				}
-			}
-			else {
-				if(appOrchestratorRedeployAttempted == false) {
-					appOrchestratorRedeployAttempted = true;
-					String previousAppOrchestratorId = appOrchestrator.getInstanceId();
-					appOrchestrator = EC2.deployDefaultEC2("", "cloudcomputing");
-					// termination of non-working EC2 instance is not verified
-					// it might still be running in AWS which can be checked in AWS Console
-					EC2.terminateEC2(previousAppOrchestratorId);
-				}
-			}
-		}
+		// termination of non-working EC2 instance is not verified
+		// it might still be running in AWS which can be checked in AWS Console
+		EC2.terminateEC2(previousInstanceId);
 	}
 	
+	private static void redeployMainInstance() throws IOException, NoSuchAlgorithmException, URISyntaxException {
+		mainInstance = EC2.deployDefaultEC2(TAG_REDEPLOYED_MAIN_INSTANCE, AWS_KEYPAIR_NAME);
+		System.out.println("Main Instance redeployed");
+		EC2.waitForInstanceToRun(mainInstance.getInstanceId());
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), mainInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), mainInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), mainInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), mainInstance);
+		EC2.startDeployedApplication(mainInstance, "main-instance");
+		waitForApplicationToStart();
+		uploadCredentials(mainInstance, "main");
+		System.out.println("Main Instance application started");
+	}
+
+	private static void deployShadow() throws IOException, NoSuchAlgorithmException, URISyntaxException {
+		shadow = EC2.deployDefaultEC2(TAG_SHADOW, AWS_KEYPAIR_NAME);
+		System.out.println("Shadow deployed");
+		EC2.waitForInstanceToRun(shadow.getInstanceId());
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), shadow);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), shadow);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), shadow);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), shadow);
+		EC2.startDeployedApplication(shadow, "main-instance");
+		waitForApplicationToStart();
+		configureAsShadow(shadow);
+		uploadCredentials(shadow, "main");
+		System.out.println("Shadow application started");
+	}
+
+	private static void deployAppOrchestrator() throws IOException, NoSuchAlgorithmException, URISyntaxException {
+		EC2.ensureJavaKeyPairExists();
+		appOrchestrator = EC2.deployDefaultEC2(TAG_APP_ORCHESTRATOR, AWS_KEYPAIR_NAME);
+		System.out.println("App Orchestrator deployed");
+		EC2.waitForInstanceToRun(appOrchestrator.getInstanceId());
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), appOrchestrator);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), appOrchestrator);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), appOrchestrator);
+		EC2.startDeployedApplication(appOrchestrator, "app-orchestrator");
+		waitForApplicationToStart();
+		uploadCredentials(appOrchestrator, "application-orchestrator");
+		System.out.println("App Orchestrator started");
+	}
+
 	private static void updateEC2InstanceForMainInstance() {
-		mainInstance = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
+		if (mainInstance == null) {
+			mainInstance = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
+			return;
+		}
+		mainInstance = EC2.retrieveEC2InstanceWithId(mainInstance.getInstanceId());
 	}
 	
 	private static void updateEC2InstanceForShadow() {
@@ -258,7 +256,7 @@ public class MainInstance {
 		URI mainInstanceURI = new URI("http", mainInstance.getPublicDnsName(), null, null);
 		URI mainInstanceHealth = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("health").build();
 		int httpStatus = ClientBuilder.newClient().target(mainInstanceHealth).request().get().getStatus();
-		return mainInstance.getState().getCode() == INSTANCE_RUNNING && httpStatus == 204;
+		return mainInstance.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
 	}
 	
 	private static boolean isShadowInstanceAlive() throws URISyntaxException {
@@ -266,7 +264,7 @@ public class MainInstance {
 		URI shadowInstanceURI = new URI("http", shadow.getPublicDnsName(), null, null);
 		URI shadowInstanceHealth = UriBuilder.fromUri(shadowInstanceURI).port(8080).path("main").path("health").build();
 		int httpStatus = ClientBuilder.newClient().target(shadowInstanceHealth).request().get().getStatus();
-		return shadow.getState().getCode() == INSTANCE_RUNNING && httpStatus == 204;
+		return shadow.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
 	}
 	
 	private static boolean isAppOrchestratorAlive() throws URISyntaxException {
@@ -274,7 +272,7 @@ public class MainInstance {
 		URI appOrchestratorURI = new URI("http", appOrchestrator.getPublicDnsName(), null, null);
 		URI appOrchestratorHealth = UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("health").build();
 		int httpStatus = ClientBuilder.newClient().target(appOrchestratorHealth).request().get().getStatus();
-		return appOrchestrator.getState().getCode() == INSTANCE_RUNNING && httpStatus == 204;
+		return appOrchestrator.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
 	}
 
 	public static boolean isAlive() {
@@ -305,37 +303,10 @@ public class MainInstance {
 		return shadow;
 	}
 
-	public static void setShadow(boolean isShadow) {
-		MainInstance.isShadow = isShadow;
-	}
-	
-	private static void deployShadow() throws IOException, NoSuchAlgorithmException, URISyntaxException {
-		shadow = EC2.deployDefaultEC2("shadow", AWS_KEYPAIR_NAME);
-		System.out.println("Shadow deployed");
-		EC2.waitForInstanceToRun(shadow.getInstanceId());
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), shadow);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), shadow);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), shadow);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), shadow);
-		EC2.startDeployedApplication(shadow, "main-instance");
-		waitForApplicationToStart();
-		configureAsShadow(shadow);
-		uploadCredentials(shadow, "main");
-		System.out.println("Shadow application started");
-	}
-
-	private static void deployAppOrchestrator() throws IOException, NoSuchAlgorithmException, URISyntaxException {
-		EC2.ensureJavaKeyPairExists();
-		appOrchestrator = EC2.deployDefaultEC2("App Orchestrator", AWS_KEYPAIR_NAME);
-		System.out.println("App Orchestrator deployed");
-		EC2.waitForInstanceToRun(appOrchestrator.getInstanceId());
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), appOrchestrator);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), appOrchestrator);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), appOrchestrator);
-		EC2.startDeployedApplication(appOrchestrator, "app-orchestrator");
-		waitForApplicationToStart();
-		uploadCredentials(appOrchestrator, "application-orchestrator");
-		System.out.println("App Orchestrator started");
+	public static void configureAsShadow(String mainInstanceId) {
+		MainInstance.isShadow = true;
+		mainInstance = EC2.retrieveEC2InstanceWithId(mainInstanceId);
+		shadow = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
 	}
 	
 	private static void waitForApplicationToStart() {
@@ -357,7 +328,7 @@ public class MainInstance {
 	
 	public static void configureAsShadow(Instance shadow) throws URISyntaxException {
 		URI shadowURI = new URI("http", shadow.getPublicDnsName(), null, null);
-		URI configureShadowURI = UriBuilder.fromUri(shadowURI).port(8080).path("main").path("shadow").queryParam("shadow", true).build();
+		URI configureShadowURI = UriBuilder.fromUri(shadowURI).port(8080).path("main").path(TAG_SHADOW).queryParam("mainInstanceId", mainInstance.getInstanceId()).build();
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(configureShadowURI).request().get();
 	}
 
