@@ -18,7 +18,6 @@ import javax.ws.rs.core.UriBuilder;
 import org.springframework.http.MediaType;
 
 import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.util.EC2MetadataUtils;
 
 @Named
 public class AppOrchestrator {
@@ -26,11 +25,13 @@ public class AppOrchestrator {
 	private static final int MIN_FREE_INSTANCES = 10;
 	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
 	private static final int MIN_REQUESTS_PER_INSTANCE = 3;
+	private static final int DOWNSCALE_CHECK_PERIOD = 5;
 	private static final String AWS_KEYPAIR_NAME = "accessibleFromAppOrchestrator";
 	
 	private static boolean keepAlive;
 	private static Instance loadBalancer;
 	private static Map<String, Target> applicationEC2Instances = new HashMap<>();
+	private static Map<String, Target> toBeDownscaledInstances = new HashMap<>();
 	private static Instance appOrchestrator;
 	private static List<Instance> toBeRemovedTargetInstances = new ArrayList<>();
 	private static List<Target> toBeAddedTargets = new ArrayList<>();
@@ -111,7 +112,7 @@ public class AppOrchestrator {
 		}
 	}
 	
-	public void downscaleAppInstances() throws NoSuchAlgorithmException, IOException {
+	public static void checkIfDownscale() throws NoSuchAlgorithmException, IOException {
 		int meanRequests = 0;
 		for (Target target: applicationEC2Instances.values()) {
 			meanRequests = meanRequests + target.getCurrentAmountOfRequests();
@@ -119,6 +120,21 @@ public class AppOrchestrator {
 		meanRequests = Math.round(meanRequests/applicationEC2Instances.size());
 		if (meanRequests < MIN_REQUESTS_PER_INSTANCE) {
 			String minId = findLeastLoadedAppInstance();
+			toBeDownscaledInstances.put(minId, applicationEC2Instances.get(minId));
+			// removing the least loaded, so it is not considered by findLeastLoadedAppInstance method
+			applicationEC2Instances.remove(minId);
+		}	
+	}
+	
+	
+	/**
+	 * restore from the downscale list. First consider the list and if is empty then redeploy
+	 */
+	public static void restoreFromDownscale() {
+		for (Target toBeRestored : toBeDownscaledInstances.values()) {
+			String instanceId = toBeRestored.getTargetInstance().getInstanceId();
+			toBeDownscaledInstances.remove(instanceId);
+			toBeAddedTargets.add(toBeRestored);
 		}
 	}
 
@@ -147,12 +163,6 @@ public class AppOrchestrator {
 	private static void updateEC2InstanceForLoadBalancer() {
 		loadBalancer = EC2.retrieveEC2InstanceWithId(loadBalancer.getInstanceId());
 	}
-	
-	
-	/**
-	 * fix this
-	 * @param appIns
-	 */
 	
 	private static void checkLoadBalancerLiveness() throws NoSuchAlgorithmException, URISyntaxException, IOException {
 		if(!isLoadBalancerAlive()) {
@@ -238,7 +248,10 @@ public class AppOrchestrator {
 				deployLoadBalancer();
 				break;
 			case "application":
-				deployApplication();
+				if (!toBeDownscaledInstances.isEmpty())
+					restoreFromDownscale();
+				else 
+					deployApplication();
 				copyTargetElements(previousInstanceId);
 			default:
 				System.err.println("Unknown type of instance provided, can not be redeployed");
@@ -258,8 +271,10 @@ public class AppOrchestrator {
 			System.err.println("Not found instance ID");
 			return;
 		}
-		boolean freeState = applicationEC2Instances.get(toBeReplacedInstanceId).isFree();
-		int currentRequests = applicationEC2Instances.get(toBeReplacedInstanceId).getCurrentAmountOfRequests();
+		int currentRequests = toBeAddedTargets.get(indexOfLast).getCurrentAmountOfRequests() + 
+				applicationEC2Instances.get(toBeReplacedInstanceId).getCurrentAmountOfRequests();
+		boolean freeState = applicationEC2Instances.get(toBeReplacedInstanceId).isFree() &&
+				(currentRequests < MAX_REQUESTS_PER_INSTANCE ? true : false);
 		toBeAddedTargets.get(indexOfLast).setFree(freeState);
 		toBeAddedTargets.get(indexOfLast).setCurrentAmountOfRequests(currentRequests);
 	}
@@ -293,6 +308,7 @@ public class AppOrchestrator {
 	
 	protected static void startMainLoop() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		keepAlive = true;
+		int iterCounter = 0;
 		while(keepAlive) {
 			if (EC2.getCredentials() == null) {
 				System.out.println("Waiting for AWS credentials, cannot start yet");
@@ -340,8 +356,20 @@ public class AppOrchestrator {
 					addTargets();
 					resetToBeAddedTargets();
 				}
+				
+				checkIfDownscale();
 			}
-			waitUntilNextIteration();
+			waitUntilNextIteration();	//perhaps this waiting time should be reduced
+			iterCounter++;
+			if (iterCounter == DOWNSCALE_CHECK_PERIOD) {
+				iterCounter = 0;
+				if (!toBeDownscaledInstances.isEmpty()) {
+					for (Target target : toBeDownscaledInstances.values()) {
+						if (target.getCurrentAmountOfRequests()==0) 
+							EC2.terminateEC2(target.getTargetInstance().getInstanceId());
+					}
+				}
+			}
 		}
 	}
 	
