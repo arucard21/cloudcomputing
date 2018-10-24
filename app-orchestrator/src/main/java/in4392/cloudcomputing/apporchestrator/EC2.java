@@ -47,9 +47,12 @@ public class EC2 {
 	private static final String AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804 = "ami-0a2ca21adb4a04084";
 	private static final String ERROR_INCORRECTLY_DEPLOYED = "The newly deployed EC2 instance did not start correctly. You may need to manually verify and correct this";
 	private static final String ERROR_STATUS_CHECKS_NOT_OK = "The newly deployed EC2 instance is running but some of the status checks may not have passed";
-	private static final int INSTANCE_PENDING = 0;
-	private static final int INSTANCE_RUNNING = 16;
-	private static final int INSTANCE_STOPPED = 80;
+	public static final int INSTANCE_PENDING = 0;
+	public static final int INSTANCE_RUNNING = 16;
+	public static final int INSTANCE_SHUTTING_DOWN = 32;
+	public static final int INSTANCE_TERMINATED = 48;
+	public static final int INSTANCE_STOPPING = 64;
+	public static final int INSTANCE_STOPPED = 80;
 	private static AmazonEC2 client;
 	private static AWSCredentials credentials;
 	private static KeyPair javaKeyPair;
