@@ -94,7 +94,7 @@ public class AppOrchestratorEndpoint {
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
 	 */
-	@Path("")
+	@Path("leastUtilizedInstance")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response sendLeastLoaded() throws NoSuchAlgorithmException, IOException{
@@ -102,6 +102,7 @@ public class AppOrchestratorEndpoint {
 		int currentRequests = AppOrchestrator.incrementRequests(minId);
 		if (currentRequests == MAX_REQUESTS_PER_INSTANCE) 
 			AppOrchestrator.setInstanceFreeStatus(minId, false);
+		System.out.println("Sent app instance " + minId + " to load balancer");
 		return Response.ok().entity(minId).build();
 	}
 	

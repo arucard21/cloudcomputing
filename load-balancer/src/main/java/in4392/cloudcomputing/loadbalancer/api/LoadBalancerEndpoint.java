@@ -1,9 +1,12 @@
 package in4392.cloudcomputing.loadbalancer.api;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -90,13 +93,33 @@ public class LoadBalancerEndpoint {
 
 		InputStream is = new ByteArrayInputStream(baos.toByteArray()); 
 		System.out.println("Requesting application instance from AppOrchestrator");
-		String instanceID = (String) ClientBuilder.newClient().target(appOrchestratorURI).request().get().getEntity();
-		System.out.println("Redirecting video to application server");
+		InputStream appOrcData = (InputStream) ClientBuilder.newClient().target(UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("leastUtilizedInstance").build()).request().get().getEntity();
+		Reader reader = new InputStreamReader(appOrcData, StandardCharsets.UTF_8);
+		BufferedReader br = new BufferedReader(reader);
+
+		StringBuilder sb = new StringBuilder();
+		String line;
+
+		try {
+			while ((line = br.readLine()) != null) {
+				sb.append(line);
+				//sb.append('\n');
+			}
+			br.close();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	
+
+		String instanceID =  sb.toString();
+		System.out.println("Redirecting video to application server " + instanceID);
 		Response video = null ;
 		boolean flag = true;
-		while (flag) {
+		int attempts = 0;
+		while (flag && attempts < 10) { 
 			try {
-				 video = ClientBuilder.newClient().target(UriBuilder.fromUri(instanceID).port(8080).path("video").build()).request(MediaType.APPLICATION_OCTET_STREAM).accept(MediaType.APPLICATION_OCTET_STREAM).post(Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM));
+				 video = ClientBuilder.newClient().target(UriBuilder.fromUri(instanceID).port(8080).path("application").path("video").build()).request().post(Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM));
 				 flag = false;
 			} catch (Exception e) {
 				is = null;
@@ -106,8 +129,25 @@ public class LoadBalancerEndpoint {
 				} catch (InterruptedException e2) {
 					e2.printStackTrace();
 				}
+				attempts += 1;
 				System.out.println("Requesting application instance from AppOrchestrator");
-				instanceID = (String) ClientBuilder.newClient().target(appOrchestratorURI).request().get().getEntity();
+				appOrcData = (InputStream) ClientBuilder.newClient().target(UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("leastUtilizedInstance").build()).request().get().getEntity();
+				reader = new InputStreamReader(appOrcData, StandardCharsets.UTF_8);
+				br = new BufferedReader(reader);
+
+				sb = new StringBuilder();
+				
+
+				try {
+					while ((line = br.readLine()) != null) {
+						sb.append(line);
+					//	sb.append('\n');
+					}
+					br.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				System.out.println("Retrying connection");
 				is = new ByteArrayInputStream(baos.toByteArray()); 
 
@@ -124,10 +164,12 @@ public class LoadBalancerEndpoint {
 		ClientBuilder.newClient().target(appOrchestratorURI).request().post(Entity.entity(num, MediaType.APPLICATION_JSON));
 	}
 	
-	@Path("appOrcherstatorURI")
+	@Path("appOrchestratorURI")
 	@POST
+	@Consumes(MediaType.TEXT_PLAIN)
 	public Response setAppOrchestratorURI(String uri) {
-		this.appOrchestratorURI = UriBuilder.fromUri(uri).build();
+		appOrchestratorURI = UriBuilder.fromUri(uri).build();
+		System.out.println("AppOrchestrator is at " + appOrchestratorURI);
 		return Response.ok().build();
 	}
 }
