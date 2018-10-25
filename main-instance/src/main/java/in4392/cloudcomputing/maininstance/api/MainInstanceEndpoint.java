@@ -119,7 +119,7 @@ public class MainInstanceEndpoint {
 	@Path("shadow")
 	@GET
 	public Response configureInstanceAsShadow(@QueryParam("mainInstanceId") String mainInstanceId) {
-		MainInstance.configureAsShadow(mainInstanceId);
+		MainInstance.configureThisInstanceAsShadowWithProvidedInstanceAsMain(mainInstanceId);
 		return Response.ok().build();
 	}
 }

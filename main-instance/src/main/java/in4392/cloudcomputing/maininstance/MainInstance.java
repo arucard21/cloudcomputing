@@ -212,7 +212,7 @@ public class MainInstance {
 		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), shadow);
 		EC2.startDeployedApplication(shadow, "main-instance");
 		waitForApplicationToStart();
-		configureAsShadow(shadow);
+		configureProvidedInstanceAsShadow(shadow);
 		uploadCredentials(shadow, API_ROOT_MAIN);
 		System.out.println("Shadow application started");
 	}
@@ -308,7 +308,7 @@ public class MainInstance {
 		return shadow;
 	}
 
-	public static void configureAsShadow(String mainInstanceId) {
+	public static void configureThisInstanceAsShadowWithProvidedInstanceAsMain(String mainInstanceId) {
 		MainInstance.isShadow = true;
 		mainInstance = EC2.retrieveEC2InstanceWithId(mainInstanceId);
 		shadow = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
@@ -331,9 +331,9 @@ public class MainInstance {
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(instanceCredentials).request().post(Entity.entity(credentials, MediaType.APPLICATION_JSON));
 	}
 	
-	public static void configureAsShadow(Instance shadow) throws URISyntaxException {
+	public static void configureProvidedInstanceAsShadow(Instance shadow) throws URISyntaxException {
 		URI shadowURI = new URI("http", shadow.getPublicDnsName(), null, null);
-		URI configureShadowURI = UriBuilder.fromUri(shadowURI).port(8080).path(API_ROOT_MAIN).path(TAG_SHADOW).queryParam("mainInstanceId", mainInstance.getInstanceId()).build();
+		URI configureShadowURI = UriBuilder.fromUri(shadowURI).port(8080).path(API_ROOT_MAIN).path("shadow").queryParam("mainInstanceId", mainInstance.getInstanceId()).build();
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(configureShadowURI).request().get();
 	}
 
