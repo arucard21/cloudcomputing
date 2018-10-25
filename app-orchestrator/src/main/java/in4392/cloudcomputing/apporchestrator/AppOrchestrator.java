@@ -5,7 +5,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -24,14 +27,18 @@ public class AppOrchestrator {
 	private static final int MIN_FREE_INSTANCES = 10;
 	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
 	private static final int MIN_REQUESTS_PER_INSTANCE = 3;
-	private static final int DOWNSCALE_CHECK_PERIOD = 5;
+	/**
+	 * Wait at least this many iterations before downscaling again
+	 */
+	private static final int DOWNSCALE_WAIT_ITERATIONS= 5;
 	private static final String AWS_KEYPAIR_NAME = "accessibleFromAppOrchestrator";
 	
 	private static boolean keepAlive;
 	private static Instance loadBalancer;
 	private static Map<String, Target> applicationTargets = new HashMap<>();
-	private static Map<String, Target> toBeDownscaledInstances = new HashMap<>();
+	private static List<String> toBeDownscaledInstances = new ArrayList<>();
 	private static Instance appOrchestrator;
+	private static int downscaleIterationWaitCounter;
 	
 	
 	private static void deployLoadBalancer() throws IOException, NoSuchAlgorithmException {
@@ -60,43 +67,51 @@ public class AppOrchestrator {
 		System.out.println("User Application application started");
 	}
 
-	public static void checkSufficientFreeInstances() throws NoSuchAlgorithmException, IOException {
+	public static void scaleUpOrDown() throws NoSuchAlgorithmException, IOException {
+		// ensure that we wait at least the amount of iterations specified in DOWNSCALE_WAIT_ITERATIONS
+		// before we check to downscale again. This should allow the average amount of requests to
+		// stabilize to a new value before we check it again.
+		if (downscaleIterationWaitCounter < DOWNSCALE_WAIT_ITERATIONS) {
+			downscaleIterationWaitCounter++;
+		}
 		int count = 0;
+		int totalRequests = 0;
 		for (Target target : applicationTargets.values()) {
 			count = target.isFree() ? count + 1 : count;
+			totalRequests = totalRequests + target.getCurrentAmountOfRequests();
 		}	
-		if (count < MIN_FREE_INSTANCES) {
-			for (int i = 0; i < MIN_FREE_INSTANCES - count; i++) {
-				deployApplication();
+		int meanRequests = Math.round(totalRequests/applicationTargets.size());
+		
+		if (count < MIN_FREE_INSTANCES || meanRequests > MAX_REQUESTS_PER_INSTANCE) {
+			/*
+			 * upscale by deploying 1 new application instance 
+			 */
+			deployApplication();
+		}
+		else {
+			if (toBeDownscaledInstances.isEmpty() && 
+					count > MIN_FREE_INSTANCES && 
+					meanRequests < MIN_REQUESTS_PER_INSTANCE) {
+				/*
+				 * downscale by marking the least used application so it is no longer used
+				 * (and can be removed once it's completely unused)
+				 */
+				String instanceIdOfLeastLoadedApplication = findLeastLoadedAppInstance();
+				toBeDownscaledInstances.add(instanceIdOfLeastLoadedApplication);
 			}
-		}
+		}		
 	}
-	
-	public static void checkIfDownscale() throws NoSuchAlgorithmException, IOException {
-		int meanRequests = 0;
-		for (Target target: applicationTargets.values()) {
-			meanRequests = meanRequests + target.getCurrentAmountOfRequests();
-		}
-		meanRequests = Math.round(meanRequests/applicationTargets.size());
-		if (meanRequests < MIN_REQUESTS_PER_INSTANCE) {
-			String minId = findLeastLoadedAppInstance();
-			toBeDownscaledInstances.put(minId, applicationTargets.get(minId));
-			// removing the least loaded, so it is not considered by findLeastLoadedAppInstance method
-			applicationTargets.remove(minId);
-		}	
-	}
-	
 	
 	/**
 	 * restore from the downscale list. First consider the list and if is empty then redeploy
 	 */
-	public static void restoreFromDownscale() {
-		for (Target toBeRestored : toBeDownscaledInstances.values()) {
-			String instanceId = toBeRestored.getTargetInstance().getInstanceId();
-			toBeDownscaledInstances.remove(instanceId);
-//			toBeAddedTargets.add(toBeRestored);
-		}
-	}
+//	public static void restoreFromDownscale() {
+//		for (Target toBeRestored : toBeDownscaledInstances.values()) {
+//			String instanceId = toBeRestored.getTargetInstance().getInstanceId();
+//			toBeDownscaledInstances.remove(instanceId);
+////			toBeAddedTargets.add(toBeRestored);
+//		}
+//	}
 
 	/**
 	 * LoadBalancing policy. find the target appInstance with the minimum number of current requests
@@ -104,18 +119,17 @@ public class AppOrchestrator {
 	 * @throws IOException 
 	 * @throws NoSuchAlgorithmException 
 	 */
-	public static String findLeastLoadedAppInstance() throws NoSuchAlgorithmException, IOException {
-		int min = MAX_REQUESTS_PER_INSTANCE;
-		String minId = null;
-		checkSufficientFreeInstances();
-		for (Target target : applicationTargets.values()) {
-			if (target.getCurrentAmountOfRequests() < min) {
-				min = target.getCurrentAmountOfRequests();
-				minId = target.getTargetInstance().getInstanceId();
-				if (min == 0) break;
+	public static String findLeastLoadedAppInstance() throws NoSuchAlgorithmException, IOException {		
+		Map<Integer, String> instanceUtilizations = new HashMap<>();
+		for(Entry<String, Target> targetEntry : applicationTargets.entrySet()) {
+			if(!toBeDownscaledInstances.contains(targetEntry.getKey())) {
+				Target target = targetEntry.getValue();
+				instanceUtilizations.put(target.getCurrentAmountOfRequests(), target.getTargetInstance().getInstanceId());
 			}
 		}
-		return minId;
+		Integer leastLoadedApplicationUtilizationValue = Collections.min(instanceUtilizations.keySet());
+		String leastLoadedApplicationInstanceId = instanceUtilizations.get(leastLoadedApplicationUtilizationValue);
+		return leastLoadedApplicationInstanceId;
 	}
 
 	private static void updateEC2InstanceForLoadBalancer() {
@@ -213,8 +227,9 @@ public class AppOrchestrator {
 				deployLoadBalancer();
 				break;
 			case "application":
-				if (!toBeDownscaledInstances.isEmpty())
-					restoreFromDownscale();
+				if (!toBeDownscaledInstances.isEmpty()) {					
+					toBeDownscaledInstances.remove(0);
+				}
 				else 
 					deployApplication();
 			default:
@@ -246,7 +261,6 @@ public class AppOrchestrator {
 
 	protected static void startMainLoop() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		keepAlive = true;
-		int iterCounter = 0;
 		while(keepAlive) {
 			if (EC2.getCredentials() == null) {
 				System.out.println("Waiting for AWS credentials, cannot start yet");
@@ -255,32 +269,23 @@ public class AppOrchestrator {
 				if (loadBalancer == null) {
 					deployLoadBalancer();
 				}
-				updateEC2InstanceForLoadBalancer();
 				checkLoadBalancerLiveness();
-
-				if (applicationTargets.isEmpty()) {
-					System.out.printf("No Application Instances found. Deploying now the defined minimum of %d", MIN_FREE_INSTANCES);
-					for (int i=0; i<MIN_FREE_INSTANCES; i++) {
-						deployApplication();
-					}
-				}
-				
 				checkAppInstancesLiveness();
-				checkSufficientFreeInstances();
-				checkIfDownscale();
-
-				iterCounter++;
-				if (iterCounter == DOWNSCALE_CHECK_PERIOD) {
-					iterCounter = 0;
-					if (!toBeDownscaledInstances.isEmpty()) {
-						for (Target target : toBeDownscaledInstances.values()) {
-							if (target.getCurrentAmountOfRequests()==0) 
-								EC2.terminateEC2(target.getTargetInstance().getInstanceId());
-						}
-					}
-				}
+				
+				scaleUpOrDown();
+				processDownscaledApplicationInstances();
 			}
-			waitUntilNextIteration();	//perhaps this waiting time should be reduced
+			waitUntilNextIteration();
+		}
+	}
+
+	private static void processDownscaledApplicationInstances() {
+		for (String instanceId: toBeDownscaledInstances) {
+			if (applicationTargets.get(instanceId).getCurrentAmountOfRequests() == 0) {
+				EC2.terminateEC2(instanceId);
+				applicationTargets.remove(instanceId);
+				downscaleIterationWaitCounter = 0;
+			}
 		}
 	}
 	
