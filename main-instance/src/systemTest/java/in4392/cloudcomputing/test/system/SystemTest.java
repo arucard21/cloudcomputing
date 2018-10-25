@@ -25,6 +25,7 @@ public abstract class SystemTest {
 	URI shadowURI;
 	URI applicationOrchestratorURI;
 	URI loadBalancerURI;
+	String loadBalancerID;
 	Collection<Instance> applications;
 	
 	@BeforeEach
@@ -47,6 +48,7 @@ public abstract class SystemTest {
 		Instance loadBalancer = client.target(appOrchestratorDescribeLoadBalancerURI).request().get(Instance.class);
 		Assertions.assertNotNull(loadBalancer);
 		loadBalancerURI = new URI("http", loadBalancer.getPublicDnsName(), null, null);
+		loadBalancerID = loadBalancer.getInstanceId();
 	}
 
 	private void getApplicationOrchestratorURIFromMainInstance() throws URISyntaxException {
