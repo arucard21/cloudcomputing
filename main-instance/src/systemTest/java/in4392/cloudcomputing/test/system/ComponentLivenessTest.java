@@ -4,29 +4,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.amazonaws.services.ec2.model.Instance;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
-public class ComponentLivenessTest {
-	private URI mainInstanceURI;
-	private Client client;
-	
-	@BeforeEach
-	public void initializeTestVariables() throws URISyntaxException {
-		client = ClientBuilder.newClient().register(JacksonJsonProvider.class);
-		mainInstanceURI = new URI("http", System.getProperty("instance.url"), null, null);
-	}
-	
+public class ComponentLivenessTest extends SystemTest{
 	@Test
 	public void mainInstanceisAlive() {
 		URI mainInstanceHealth = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("health").build();
