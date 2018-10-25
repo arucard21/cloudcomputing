@@ -1,22 +1,21 @@
 package in4392.cloudcomputing.apporchestrator.api;
 
 import java.io.IOException;
-
-import java.security.NoSuchAlgorithmException;
-
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Named;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -29,6 +28,7 @@ import in4392.cloudcomputing.apporchestrator.Target;
 
 @Named
 @Path("application-orchestrator")
+@Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class AppOrchestratorEndpoint {
 	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
@@ -96,7 +96,6 @@ public class AppOrchestratorEndpoint {
 	 */
 	@Path("leastUtilizedInstance")
 	@GET
-	@Produces(MediaType.APPLICATION_JSON)
 	public Response sendLeastLoaded() throws NoSuchAlgorithmException, IOException{
 		String minId = AppOrchestrator.findLeastLoadedAppInstance();
 		int currentRequests = AppOrchestrator.incrementRequests(minId);
@@ -104,6 +103,21 @@ public class AppOrchestratorEndpoint {
 			AppOrchestrator.setInstanceFreeStatus(minId, false);
 		System.out.println("Sent app instance " + minId + " to load balancer");
 		return Response.ok().entity(minId).build();
+	}
+	
+	/**
+	 * 
+	 * @return a map showing the current utilization as key and the hostname of the
+	 * application instance as value
+	 */
+	@Path("instance-utilization")
+	@GET
+	public Map<Integer, String> retrieveInstanceUtilizations(){
+		Map<Integer, String> instanceUtilizations = new HashMap<>();
+		for(Target target : AppOrchestrator.getApplicationEC2Instances().values()) {
+			instanceUtilizations.put(target.getCurrentAmountOfRequests(), target.getTargetInstance().getPublicDnsName());
+		}
+		return instanceUtilizations;
 	}
 	
 	/**
