@@ -56,7 +56,7 @@ public class AppOrchestrator {
 	
 	private static void deployApplication() throws IOException, NoSuchAlgorithmException {
 		System.out.println("Starting User Application deployment");
-		Instance applicationInstance = EC2.deployDefaultEC2("User Application", AWS_KEYPAIR_NAME);
+		Instance applicationInstance = EC2.deployDefaultEC2("User Application", AWS_KEYPAIR_NAME, getApplicationUserData());
 		applicationTargets.put(applicationInstance.getInstanceId(), new Target(applicationInstance, true, 0));
 		System.out.println("User Application deployed, waiting for instance to run");
 		EC2.waitForInstanceToRun(applicationInstance.getInstanceId());
@@ -65,6 +65,12 @@ public class AppOrchestrator {
 		System.out.println("Starting User Application application");
 		EC2.startDeployedApplication(applicationInstance, "application");
 		System.out.println("User Application application started");
+	}
+
+	private static String getApplicationUserData() {
+		String applicationInstallScript = EC2.getDefaultInstallScript();
+		applicationInstallScript = applicationInstallScript + "apt install -y ffmpeg\n";
+		return EC2.getUserData(applicationInstallScript);
 	}
 
 	public static void scaleUpOrDown() throws NoSuchAlgorithmException, IOException {

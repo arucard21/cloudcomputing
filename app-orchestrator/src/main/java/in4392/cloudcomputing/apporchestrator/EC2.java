@@ -89,6 +89,10 @@ public class EC2 {
 		int httpStatus = ClientBuilder.newClient().target(mainInstanceHealth).request().get().getStatus();
 		return httpStatus;
 	}
+	
+	public static Instance deployDefaultEC2(String usageTag, String keyPairName) throws NoSuchAlgorithmException {
+		return deployDefaultEC2(usageTag, keyPairName, getUserData());
+	}
 
 	/**
 	 * Deploy an EC2 instance and wait for it to be running and the status checks to pass
@@ -98,12 +102,12 @@ public class EC2 {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws IOException if the userdata script can not be read
 	 */
-	public static Instance deployDefaultEC2(String usageTag, String keyPairName) throws NoSuchAlgorithmException {
+	public static Instance deployDefaultEC2(String usageTag, String keyPairName, String userData) throws NoSuchAlgorithmException {
 		ensureJavaKeyPairExists();
 		RunInstancesRequest runInstancesRequest = new RunInstancesRequest(AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804, 1, 1)
 				.withInstanceType(InstanceType.T2Micro)
 				.withKeyName(keyPairName)
-				.withUserData(getUserData());
+				.withUserData(userData);
 		if (usageTag != null && !usageTag.isEmpty()) {
 			runInstancesRequest.withTagSpecifications(
 					new TagSpecification()
@@ -138,12 +142,19 @@ public class EC2 {
 	public static void removeExistingKeyPair() {
 		client.deleteKeyPair(new DeleteKeyPairRequest(AWS_KEYPAIR_NAME));
 	}
-
-	public static String getUserData() {
-		String userData = "#!/bin/bash\n" + 
+	
+	public static String getDefaultInstallScript() {
+		return "#!/bin/bash\n" + 
 				"apt update\n" + 
 				"apt install -y openjdk-8-jre\n";
-		return Base64.getEncoder().encodeToString(userData.getBytes());
+	}
+	
+	public static String getUserData() {
+		return getUserData(getDefaultInstallScript());
+	}
+
+	public static String getUserData(String installScript) {
+		return Base64.getEncoder().encodeToString(installScript.getBytes());
 	}
 
 	public static void waitForInstanceToRun(String deployedInstanceId) {
