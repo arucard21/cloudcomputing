@@ -1,6 +1,7 @@
 package in4392.cloudcomputing.maininstance;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
@@ -54,6 +55,7 @@ public class MainInstance {
 	private static final String API_ROOT_MAIN = "main";
 	private static final String AWS_KEYPAIR_NAME = "accessibleFromMainInstance";
 	private static final int ITERATION_WAIT_TIME = 60 * 1000;
+	private static String mainInstanceDNS;
 	private static boolean keepAlive;
 	private static Instance mainInstance;
 	private static Instance shadow;
@@ -186,7 +188,9 @@ public class MainInstance {
 		}
 		// termination of non-working EC2 instance is not verified
 		// it might still be running in AWS which can be checked in AWS Console
-		EC2.terminateEC2(previousInstanceId);
+		if (previousInstanceId != null) {
+			EC2.terminateEC2(previousInstanceId);
+		}
 	}
 	
 	private static void redeployMainInstance() throws IOException, NoSuchAlgorithmException, URISyntaxException {
@@ -201,6 +205,7 @@ public class MainInstance {
 		waitForApplicationToStart();
 		uploadCredentials(mainInstance, API_ROOT_MAIN);
 		System.out.println("Main Instance application started");
+		mainInstanceDNS = mainInstance.getPrivateDnsName();
 	}
 
 	private static void deployShadow() throws IOException, NoSuchAlgorithmException, URISyntaxException {
@@ -250,15 +255,18 @@ public class MainInstance {
 
 	private static boolean isMainInstanceAlive() throws URISyntaxException {
 		updateEC2InstanceForMainInstance();
-		System.out.println(mainInstance);
-		System.out.println(shadow);
 		if (mainInstance == null) {
 			return false;
 		}
-		URI mainInstanceURI = new URI("http", mainInstance.getPublicDnsName(), null, null);
-		URI mainInstanceHealth = UriBuilder.fromUri(mainInstanceURI).port(8080).path(API_ROOT_MAIN).path("health").build();
-		int httpStatus = ClientBuilder.newClient().target(mainInstanceHealth).request().get().getStatus();
-		return mainInstance.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		URI mainInstanceURI = new URI("http", mainInstanceDNS, null, null);
+		try {
+			URI mainInstanceHealth = UriBuilder.fromUri(mainInstanceURI).port(8080).path(API_ROOT_MAIN).path("health").build();
+			int httpStatus = ClientBuilder.newClient().target(mainInstanceHealth).request().get().getStatus();
+			return mainInstance.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		}catch(Exception e) {
+			System.out.println("Exception");
+			return false;
+		}
 	}
 	
 	private static boolean isShadowInstanceAlive() throws URISyntaxException {
@@ -277,10 +285,14 @@ public class MainInstance {
 		if (appOrchestrator == null) {
 			return false;
 		}
-		URI appOrchestratorURI = new URI("http", appOrchestrator.getPublicDnsName(), null, null);
-		URI appOrchestratorHealth = UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("health").build();
-		int httpStatus = ClientBuilder.newClient().target(appOrchestratorHealth).request().get().getStatus();
-		return appOrchestrator.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		System.out.println(appOrchestrator.getPublicDnsName());
+		if (appOrchestrator.getPublicDnsName() != ""){ 
+			URI appOrchestratorURI = new URI("http", appOrchestrator.getPublicDnsName(), null, null);
+			URI appOrchestratorHealth = UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("health").build();
+			int httpStatus = ClientBuilder.newClient().target(appOrchestratorHealth).request().get().getStatus();
+			return appOrchestrator.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		}
+		return false;
 	}
 
 	public static boolean isAlive() {
@@ -315,6 +327,7 @@ public class MainInstance {
 		MainInstance.isShadow = true;
 		System.out.println(mainInstanceId);
 		mainInstance = EC2.retrieveEC2InstanceWithId(mainInstanceId);
+		mainInstanceDNS = mainInstance.getPublicDnsName(); 
 		shadow = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
 	}
 	
@@ -357,7 +370,7 @@ public class MainInstance {
 				.withInstanceIds(shadow.getInstanceId(), appOrchestrator.getInstanceId());
 		
 		// This part covers the Monitoring subsection of what resources are used in the
-		// system.
+		// system.	
 		// TODO Usage of resources by the system can be the total of the aforementioned
 		// ones or the description of AWS resources used(basically everything present in
 		// the EC2 dashboard).
@@ -386,15 +399,16 @@ public class MainInstance {
 	private static List<String> getInstanceIDsFromAppOrchestrator() throws URISyntaxException {
 		List<String> instanceIds = new ArrayList<>();
 		URI appOrchestratorURI = new URI("http", appOrchestrator.getPublicDnsName(), null, null);
-		UriBuilder appOrchestratorDescribeBase= UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("instances");
-		URI appOrchestratorDescribeLoadBalancer = appOrchestratorDescribeBase.path("load-balancer").build();
-		URI appOrchestratorDescribeApplications = appOrchestratorDescribeBase.path("applications").build();
+		URI appOrchestratorDescribeLoadBalancer= UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("load-balancer").build();
+		URI appOrchestratorDescribeApplications = UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("applications").build();
 		Client client = ClientBuilder.newClient().register(JacksonJsonProvider.class);
 		Instance loadBalancer = client.target(appOrchestratorDescribeLoadBalancer).request().get(Instance.class);
 		if(loadBalancer != null) {			
 			instanceIds.add(loadBalancer.getInstanceId());
-		}
+		}		
+		System.out.println(appOrchestratorDescribeApplications);
 		Collection<Instance> applications = client.target(appOrchestratorDescribeApplications).request().get(new GenericType<Collection<Instance>>(new TypeReference<Collection<Instance>>() {}.getType()));
+		//Collection<Instance> applications = (Collection<Instance>) client.target(appOrchestratorDescribeApplications).request().get();
 		if(applications != null && !applications.isEmpty()) {
 			applications.forEach((instance) -> instanceIds.add(instance.getInstanceId()));
 		}

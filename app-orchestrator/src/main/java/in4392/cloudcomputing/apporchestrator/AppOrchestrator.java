@@ -20,6 +20,9 @@ import javax.ws.rs.core.UriBuilder;
 import org.springframework.http.MediaType;
 
 import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.util.EC2MetadataUtils;
+
+import in4392.cloudcomputing.apporchestrator.EC2;
 
 @Named
 public class AppOrchestrator {
@@ -41,7 +44,7 @@ public class AppOrchestrator {
 	private static int downscaleIterationWaitCounter;
 	
 	
-	private static void deployLoadBalancer() throws IOException, NoSuchAlgorithmException {
+	private static void deployLoadBalancer() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		System.out.println("Starting Load Balancer deployment");
 		loadBalancer = EC2.deployDefaultEC2("Load Balancer", AWS_KEYPAIR_NAME);
 		System.out.println("Load Balancer deployed, waiting for instance to run");
@@ -51,7 +54,19 @@ public class AppOrchestrator {
 		System.out.println("Starting Load Balancer application");
 		EC2.startDeployedApplication(loadBalancer, "load-balancer");
 		System.out.println("Load Balancer application started");
-		ClientBuilder.newClient().target(getLoadBalancerURI()).request().post(Entity.entity(appOrchestrator.getPublicDnsName(),MediaType.TEXT_PLAIN_VALUE));
+		URI loadBalancerURI = new URI("http", getLoadBalancerURI(), null, null);
+		System.out.println(UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("appOrchestratorURI").build());
+		System.out.println(appOrchestrator.getPublicDnsName());
+		waitForApplicationToStart();
+		ClientBuilder.newClient().target(UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("appOrchestratorURI").build()).request().post(Entity.entity(appOrchestrator.getPublicDnsName(),MediaType.TEXT_PLAIN_VALUE));
+	}
+	
+	private static void waitForApplicationToStart() {
+		try {
+			Thread.sleep(30 * 1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private static void deployApplication() throws IOException, NoSuchAlgorithmException {
@@ -82,11 +97,14 @@ public class AppOrchestrator {
 		}
 		int count = 0;
 		int totalRequests = 0;
+		int meanRequests = 0;
 		for (Target target : applicationTargets.values()) {
 			count = target.isFree() ? count + 1 : count;
 			totalRequests = totalRequests + target.getCurrentAmountOfRequests();
 		}	
-		int meanRequests = Math.round(totalRequests/applicationTargets.size());
+		if (applicationTargets.size() > 0){
+			meanRequests = Math.round(totalRequests/applicationTargets.size());
+		}
 		
 		if (count < MIN_FREE_INSTANCES || meanRequests > MAX_REQUESTS_PER_INSTANCE) {
 			/*
@@ -274,6 +292,9 @@ public class AppOrchestrator {
 				System.out.println("Waiting for AWS credentials, cannot start yet");
 			}
 			else {
+				if (appOrchestrator == null){
+					appOrchestrator = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
+				}
 				if (loadBalancer == null) {
 					deployLoadBalancer();
 				}

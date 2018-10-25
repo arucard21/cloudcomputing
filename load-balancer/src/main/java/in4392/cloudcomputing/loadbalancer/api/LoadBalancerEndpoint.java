@@ -28,7 +28,7 @@ import javax.ws.rs.core.UriBuilder;
 
 
 @Named
-@Path("")
+@Path("load-balancer")
 @Produces(MediaType.APPLICATION_JSON)
 public class LoadBalancerEndpoint {
 	private static final int RETRY_WAIT_TIME = 20000;
