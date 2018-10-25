@@ -1,7 +1,5 @@
 package in4392.cloudcomputing.apporchestrator;
 
-import java.net.URI;
-
 import com.amazonaws.services.ec2.model.Instance;
 
 public class Target {

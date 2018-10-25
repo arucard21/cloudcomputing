@@ -16,7 +16,6 @@ import java.util.List;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -32,8 +31,6 @@ import javax.ws.rs.core.UriBuilder;
 @Path("")
 @Produces(MediaType.APPLICATION_JSON)
 public class LoadBalancerEndpoint {
-	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
-	private static final int MIN_FREE_INSTANCES = 10;
 	private static final int RETRY_WAIT_TIME = 20000;
 	int index;
 	List<Target> targets = new ArrayList<>();
