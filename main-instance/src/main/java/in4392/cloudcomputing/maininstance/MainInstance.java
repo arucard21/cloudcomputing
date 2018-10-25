@@ -89,6 +89,7 @@ public class MainInstance {
 					checkMainInstanceLiveness();
 				}
 				else{
+					updateEC2InstanceForMainInstance();
 					if (!isShadowDeployed()) {
 						System.out.println("Deploying shadow");
 						deployShadow();
@@ -212,8 +213,8 @@ public class MainInstance {
 		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), shadow);
 		EC2.startDeployedApplication(shadow, "main-instance");
 		waitForApplicationToStart();
-		configureProvidedInstanceAsShadow(shadow);
 		uploadCredentials(shadow, API_ROOT_MAIN);
+		configureProvidedInstanceAsShadow(shadow);
 		System.out.println("Shadow application started");
 	}
 
@@ -249,6 +250,8 @@ public class MainInstance {
 
 	private static boolean isMainInstanceAlive() throws URISyntaxException {
 		updateEC2InstanceForMainInstance();
+		System.out.println(mainInstance);
+		System.out.println(shadow);
 		if (mainInstance == null) {
 			return false;
 		}
@@ -310,6 +313,7 @@ public class MainInstance {
 
 	public static void configureThisInstanceAsShadowWithProvidedInstanceAsMain(String mainInstanceId) {
 		MainInstance.isShadow = true;
+		System.out.println(mainInstanceId);
 		mainInstance = EC2.retrieveEC2InstanceWithId(mainInstanceId);
 		shadow = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
 	}

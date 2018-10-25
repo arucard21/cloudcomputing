@@ -54,20 +54,12 @@ public class LoadBalancerEndpoint {
 	 * 
 	 * @return the response from the instance
 	 */
-	@Path("")
+	@Path("entry")
 	@POST
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	public Response getInstanceResponse(InputStream data) {
+	public Response redirectRequest(InputStream data) {
 		
-		//checkSufficientFreeInstances();
-		//incrementIndex();
-		//Target curTarget = targets.get(index);
-		//curTarget.incrementCurrentAmountOfRequests();
-		//if (curTarget.getCurrentAmountOfRequests() == MAX_REQUESTS_PER_INSTANCE) {
-		//	curTarget.setFree(false);
-		//}
-		//return ClientBuilder.newClient().target(UriBuilder.fromUri(curTarget.getTargetURI()).path("video").build()).request().post(Entity.entity(data, MediaType.APPLICATION_OCTET_STREAM));
 		System.out.println("Store input video to a stream");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
