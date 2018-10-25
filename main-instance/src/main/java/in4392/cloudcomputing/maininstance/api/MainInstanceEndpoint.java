@@ -119,6 +119,7 @@ public class MainInstanceEndpoint {
 	@Path("shadow")
 	@GET
 	public Response configureInstanceAsShadow(@QueryParam("mainInstanceId") String mainInstanceId) {
+		//System.out.println(mainInstanceId);
 		MainInstance.configureThisInstanceAsShadowWithProvidedInstanceAsMain(mainInstanceId);
 		return Response.ok().build();
 	}

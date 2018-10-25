@@ -206,6 +206,7 @@ public class MainInstance {
 		uploadCredentials(mainInstance, API_ROOT_MAIN);
 		System.out.println("Main Instance application started");
 		mainInstanceDNS = mainInstance.getPrivateDnsName();
+			
 	}
 
 	private static void deployShadow() throws IOException, NoSuchAlgorithmException, URISyntaxException {

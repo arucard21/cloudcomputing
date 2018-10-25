@@ -57,7 +57,7 @@ public class AppOrchestratorEndpoint {
 	
 	@Path("instances/applications")
 	@GET
-	public Collection<Target> describeApplications() {
+	public Collection<Instance> describeApplications() {
 		return AppOrchestrator.getApplicationEC2Instances().values();
 	}
 
@@ -114,7 +114,7 @@ public class AppOrchestratorEndpoint {
 	@GET
 	public Map<Integer, String> retrieveInstanceUtilizations(){
 		Map<Integer, String> instanceUtilizations = new HashMap<>();
-		for(Target target : AppOrchestrator.getApplicationEC2Instances().values()) {
+		for(Target target : AppOrchestrator.getApplicationEC2Targets().values()) {
 			instanceUtilizations.put(target.getCurrentAmountOfRequests(), target.getTargetInstance().getPublicDnsName());
 		}
 		return instanceUtilizations;

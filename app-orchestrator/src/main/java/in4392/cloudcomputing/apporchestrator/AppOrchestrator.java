@@ -27,7 +27,7 @@ import in4392.cloudcomputing.apporchestrator.EC2;
 @Named
 public class AppOrchestrator {
 	private static final int ITERATION_WAIT_TIME = 60 * 1000;
-	private static final int MIN_FREE_INSTANCES = 10;
+	private static final int MIN_FREE_INSTANCES = 2;
 	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
 	private static final int MIN_REQUESTS_PER_INSTANCE = 3;
 	/**
@@ -39,6 +39,7 @@ public class AppOrchestrator {
 	private static boolean keepAlive;
 	private static Instance loadBalancer;
 	private static Map<String, Target> applicationTargets = new HashMap<>();
+	private static Map<String, Instance> applicationInstances = new HashMap<>();
 	private static List<String> toBeDownscaledInstances = new ArrayList<>();
 	private static Instance appOrchestrator;
 	private static int downscaleIterationWaitCounter;
@@ -346,7 +347,15 @@ public class AppOrchestrator {
 		return loadBalancer;
 	}
 
-	public static Map<String, Target> getApplicationEC2Instances() {
+	public static Map<String, Target> getApplicationEC2Targets() {
 		return applicationTargets;
+	}
+	
+	public static Map<String, Instance> getApplicationEC2Instances() {
+		applicationInstances = new HashMap<>();
+		for (Target target : applicationTargets.values()) {
+			applicationInstances.put(target.getTargetInstance().getInstanceId(),target.getTargetInstance());
+		}
+		return applicationInstances;
 	}
 }
