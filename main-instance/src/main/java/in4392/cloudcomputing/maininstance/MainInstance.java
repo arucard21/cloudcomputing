@@ -45,9 +45,13 @@ import in4392.cloudcomputing.maininstance.api.SimpleAWSCredentials;
 
 @Named
 public class MainInstance {
+	private static final String INSTANCE_TYPE_APP_ORCHESTRATOR = "appOrchestrator";
+	private static final String INSTANCE_TYPE_SHADOW = "shadow";
+	private static final String INSTANCE_TYPE_MAIN = "main";
 	private static final String TAG_REDEPLOYED_MAIN_INSTANCE = "Redeployed Main Instance";
 	private static final String TAG_APP_ORCHESTRATOR = "App Orchestrator";
-	private static final String TAG_SHADOW = "shadow";
+	private static final String TAG_SHADOW = "Shadow Instance";
+	private static final String API_ROOT_MAIN = "main";
 	private static final String AWS_KEYPAIR_NAME = "accessibleFromMainInstance";
 	private static final int ITERATION_WAIT_TIME = 60 * 1000;
 	private static boolean keepAlive;
@@ -80,10 +84,6 @@ public class MainInstance {
 				System.out.println("Waiting for AWS credentials, cannot start yet");
 			}
 			else {
-				updateEC2InstanceForMainInstance();
-				updateEC2InstanceForShadow();
-				updateEC2InstanceForAppOrchestrator();
-				
 				if (behaveAsShadow()) {
 					System.out.println("Checking main instance liveness from shadow");
 					checkMainInstanceLiveness();
@@ -128,15 +128,15 @@ public class MainInstance {
 	}
 
 	private static void recoverMainInstance() throws NoSuchAlgorithmException, IOException, URISyntaxException {
-		recoverInstance(mainInstance, "main");
+		recoverInstance(mainInstance, INSTANCE_TYPE_MAIN);
 	}
 	
 	private static void recoverShadowInstance() throws NoSuchAlgorithmException, IOException, URISyntaxException {
-		recoverInstance(shadow, "shadow");
+		recoverInstance(shadow, INSTANCE_TYPE_SHADOW);
 	}
 	
 	private static void recoverAppOrchestrator() throws NoSuchAlgorithmException, IOException, URISyntaxException {
-		recoverInstance(appOrchestrator, "appOrchestrator");
+		recoverInstance(appOrchestrator, INSTANCE_TYPE_APP_ORCHESTRATOR);
 	}
 
 	/**
@@ -152,12 +152,8 @@ public class MainInstance {
 			return;
 		}
 		int brokenInstanceState = brokenInstance.getState().getCode();
-		if (brokenInstanceState == EC2.INSTANCE_RUNNING) {
-			EC2.stopEC2Instance(shadow.getInstanceId());
-			return;
-		}
-		if (brokenInstanceState == EC2.INSTANCE_STOPPED) {
-			EC2.startEC2Instance(shadow.getInstanceId());
+		if (brokenInstanceState == EC2.INSTANCE_RUNNING || brokenInstanceState == EC2.INSTANCE_STOPPED) {
+			EC2.terminateEC2(shadow.getInstanceId());
 			return;
 		}
 		if (brokenInstanceState == EC2.INSTANCE_TERMINATED) {
@@ -175,13 +171,13 @@ public class MainInstance {
 	private static void redeployInstance(Instance brokenInstance, String brokenInstanceType) throws NoSuchAlgorithmException, IOException, URISyntaxException {
 		String previousInstanceId = brokenInstance.getInstanceId();
 		switch(brokenInstanceType) {
-			case "main":
+			case INSTANCE_TYPE_MAIN:
 				redeployMainInstance();
 				break;
-			case "shadow":
+			case INSTANCE_TYPE_SHADOW:
 				deployShadow();
 				break;
-			case "appOrchestrator":
+			case INSTANCE_TYPE_APP_ORCHESTRATOR:
 				deployAppOrchestrator();
 				break;
 			default:
@@ -202,7 +198,7 @@ public class MainInstance {
 		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), mainInstance);
 		EC2.startDeployedApplication(mainInstance, "main-instance");
 		waitForApplicationToStart();
-		uploadCredentials(mainInstance, "main");
+		uploadCredentials(mainInstance, API_ROOT_MAIN);
 		System.out.println("Main Instance application started");
 	}
 
@@ -217,7 +213,7 @@ public class MainInstance {
 		EC2.startDeployedApplication(shadow, "main-instance");
 		waitForApplicationToStart();
 		configureAsShadow(shadow);
-		uploadCredentials(shadow, "main");
+		uploadCredentials(shadow, API_ROOT_MAIN);
 		System.out.println("Shadow application started");
 	}
 
@@ -253,22 +249,31 @@ public class MainInstance {
 
 	private static boolean isMainInstanceAlive() throws URISyntaxException {
 		updateEC2InstanceForMainInstance();
+		if (mainInstance == null) {
+			return false;
+		}
 		URI mainInstanceURI = new URI("http", mainInstance.getPublicDnsName(), null, null);
-		URI mainInstanceHealth = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("health").build();
+		URI mainInstanceHealth = UriBuilder.fromUri(mainInstanceURI).port(8080).path(API_ROOT_MAIN).path("health").build();
 		int httpStatus = ClientBuilder.newClient().target(mainInstanceHealth).request().get().getStatus();
 		return mainInstance.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
 	}
 	
 	private static boolean isShadowInstanceAlive() throws URISyntaxException {
 		updateEC2InstanceForShadow();
+		if(shadow == null) {
+			return false;
+		}
 		URI shadowInstanceURI = new URI("http", shadow.getPublicDnsName(), null, null);
-		URI shadowInstanceHealth = UriBuilder.fromUri(shadowInstanceURI).port(8080).path("main").path("health").build();
+		URI shadowInstanceHealth = UriBuilder.fromUri(shadowInstanceURI).port(8080).path(API_ROOT_MAIN).path("health").build();
 		int httpStatus = ClientBuilder.newClient().target(shadowInstanceHealth).request().get().getStatus();
 		return shadow.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
 	}
 	
 	private static boolean isAppOrchestratorAlive() throws URISyntaxException {
 		updateEC2InstanceForAppOrchestrator();
+		if (appOrchestrator == null) {
+			return false;
+		}
 		URI appOrchestratorURI = new URI("http", appOrchestrator.getPublicDnsName(), null, null);
 		URI appOrchestratorHealth = UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("health").build();
 		int httpStatus = ClientBuilder.newClient().target(appOrchestratorHealth).request().get().getStatus();
@@ -328,7 +333,7 @@ public class MainInstance {
 	
 	public static void configureAsShadow(Instance shadow) throws URISyntaxException {
 		URI shadowURI = new URI("http", shadow.getPublicDnsName(), null, null);
-		URI configureShadowURI = UriBuilder.fromUri(shadowURI).port(8080).path("main").path(TAG_SHADOW).queryParam("mainInstanceId", mainInstance.getInstanceId()).build();
+		URI configureShadowURI = UriBuilder.fromUri(shadowURI).port(8080).path(API_ROOT_MAIN).path(TAG_SHADOW).queryParam("mainInstanceId", mainInstance.getInstanceId()).build();
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(configureShadowURI).request().get();
 	}
 
