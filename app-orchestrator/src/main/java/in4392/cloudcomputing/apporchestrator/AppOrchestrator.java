@@ -77,7 +77,7 @@ public class AppOrchestrator {
 		// ensure that we wait at least the amount of iterations specified in DOWNSCALE_WAIT_ITERATIONS
 		// before we check to downscale again. This should allow the average amount of requests to
 		// stabilize to a new value before we check it again.
-		if (downscaleIterationWaitCounter < DOWNSCALE_WAIT_ITERATIONS) {
+		if (toBeDownscaledInstances.isEmpty() && downscaleIterationWaitCounter < DOWNSCALE_WAIT_ITERATIONS) {
 			downscaleIterationWaitCounter++;
 		}
 		int count = 0;
@@ -104,6 +104,7 @@ public class AppOrchestrator {
 				 */
 				String instanceIdOfLeastLoadedApplication = findLeastLoadedAppInstance();
 				toBeDownscaledInstances.add(instanceIdOfLeastLoadedApplication);
+				downscaleIterationWaitCounter = 0;
 			}
 		}		
 	}
@@ -236,8 +237,9 @@ public class AppOrchestrator {
 				if (!toBeDownscaledInstances.isEmpty()) {					
 					toBeDownscaledInstances.remove(0);
 				}
-				else 
+				else {
 					deployApplication();
+				}
 			default:
 				System.err.println("Unknown type of instance provided, can not be redeployed");
 		}
@@ -289,8 +291,8 @@ public class AppOrchestrator {
 		for (String instanceId: toBeDownscaledInstances) {
 			if (applicationTargets.get(instanceId).getCurrentAmountOfRequests() == 0) {
 				EC2.terminateEC2(instanceId);
+				toBeDownscaledInstances.remove(instanceId);
 				applicationTargets.remove(instanceId);
-				downscaleIterationWaitCounter = 0;
 			}
 		}
 	}
