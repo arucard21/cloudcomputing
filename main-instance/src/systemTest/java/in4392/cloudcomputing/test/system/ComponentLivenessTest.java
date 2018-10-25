@@ -1,4 +1,4 @@
-package in4392.cloudcomputing.maininstance;
+package in4392.cloudcomputing.test.system;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -17,7 +17,7 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
-public class SystemExperiments {
+public class ComponentLivenessTest {
 	private URI mainInstanceURI;
 	private Client client;
 	
