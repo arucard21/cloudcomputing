@@ -22,12 +22,15 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
  * Initialize the variables needed for all system tests
  */
 public abstract class SystemTest {
-	URI mainInstanceURI;
 	Client client;
+	Instance mainInstance;
+	URI mainInstanceURI;
+	Instance shadow;
 	URI shadowURI;
+	Instance applicationOrchestrator;
 	URI applicationOrchestratorURI;
+	Instance loadBalancer;
 	URI loadBalancerURI;
-	String loadBalancerID;
 	Collection<Instance> applications;
 	
 	Path testVideoSmall = Paths.get("sintel_trailer-480p.mp4");
@@ -49,15 +52,14 @@ public abstract class SystemTest {
 
 	private void getLoadBalancerURIFromAppOrchestrator() throws URISyntaxException {
 		URI appOrchestratorDescribeLoadBalancerURI = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("load-balancer").build();
-		Instance loadBalancer = client.target(appOrchestratorDescribeLoadBalancerURI).request().get(Instance.class);
+		loadBalancer = client.target(appOrchestratorDescribeLoadBalancerURI).request().get(Instance.class);
 		Assertions.assertNotNull(loadBalancer);
 		loadBalancerURI = new URI("http", loadBalancer.getPublicDnsName(), null, null);
-		loadBalancerID = loadBalancer.getInstanceId();
 	}
 
 	private void getApplicationOrchestratorURIFromMainInstance() throws URISyntaxException {
 		URI mainInstanceDescribeApplicationOrchestratorURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("application-orchestrator").build();
-		Instance applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
+		applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
 		Assertions.assertNotNull(applicationOrchestrator);
 		
 		applicationOrchestratorURI = new URI("http", applicationOrchestrator.getPublicDnsName(), null, null);
@@ -65,7 +67,7 @@ public abstract class SystemTest {
 
 	private void getShadowURIFromMainInstance() throws URISyntaxException {
 		URI mainInstanceDescribeShadowURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("shadow").build();
-		Instance shadow = client.target(mainInstanceDescribeShadowURI).request().get(Instance.class);
+		shadow = client.target(mainInstanceDescribeShadowURI).request().get(Instance.class);
 		Assertions.assertNotNull(shadow);
 		
 		shadowURI = new URI("http", shadow.getPublicDnsName(), null, null);
@@ -73,6 +75,8 @@ public abstract class SystemTest {
 
 	private void getMainInstanceURIFromSystemProperty() throws URISyntaxException {
 		mainInstanceURI = new URI("http", System.getProperty("instance.url"), null, null);
+		URI mainInstanceDescribeMainInstanceURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("shadow").build();
+		mainInstance = client.target(mainInstanceDescribeMainInstanceURI).request().get(Instance.class);
 	}
 
 	private void createClient() {
