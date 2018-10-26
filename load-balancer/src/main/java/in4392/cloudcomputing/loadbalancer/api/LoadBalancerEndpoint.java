@@ -24,8 +24,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import org.springframework.web.bind.annotation.RequestBody;
-
 
 @Named
 @Path("load-balancer")
@@ -59,7 +57,7 @@ public class LoadBalancerEndpoint {
 	@POST
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	public Response redirectRequest(@RequestBody InputStream data) throws URISyntaxException {
+	public Response redirectRequest(InputStream data) throws URISyntaxException {
 		
 		System.out.println("Store input video to a stream");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
