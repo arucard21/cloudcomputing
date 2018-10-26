@@ -25,7 +25,7 @@ public class AppOrchestratorTest extends SystemTest {
 	 * - some time to start the application
 	 * - some time to configure the state of the application 
 	 * 
-	 * For now, we wait 20 iterations, which is 10 minutes
+	 * For now, we wait 10 iterations, which is 10 minutes
 	 */
 	private static int RECOVERY_WAIT_MAX_ITERATIONS = 10;
 	/**
