@@ -84,10 +84,9 @@ public class ApplicationScalingTest extends SystemTest{
 	 * This test assumes that the system is fully idle and is configured to allow:
 	 * - minumum 3 requests per instance
 	 * - maximum 5 requests per instance
-	 * - 2 free instances per request
 	 * 
-	 * This means that an idle system should have 3 instances and sending more than 5 requests would
-	 * trigger it to scale up to 4 instances. After that, it should scale down again to 3 instances.
+	 * This means that an idle system should have 1 instances and sending more than 5 requests would
+	 * trigger it to scale up to 2 instances. After that, it should scale down again to 1 instances.
 	 * 
 	 * @throws IOException
 	 * @throws InterruptedException
@@ -95,17 +94,17 @@ public class ApplicationScalingTest extends SystemTest{
 	@Test
 	public void scaleUpAndDownByOneInstance() throws IOException, InterruptedException {
 		int initialAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
-		Assertions.assertEquals(3, initialAmountOfApplications);
+		Assertions.assertEquals(1, initialAmountOfApplications);
 		sendRequestsToApplicationWithDelay(6, 120);
 
 		// wait for scaling up (at least 1 iteration of the app orchestrator and less than it takes to complete the request)
 		Thread.sleep(100 * 1000);
 		int scaledUpAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
-		Assertions.assertEquals(4, scaledUpAmountOfApplications);
+		Assertions.assertEquals(2, scaledUpAmountOfApplications);
 		
 		// wait for scaling down (at least 1 iteration of the app orchestrator and more than the remaining time to complete the request)
 		Thread.sleep(80 * 1000);
 		int scaledDownAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
-		Assertions.assertEquals(3, scaledDownAmountOfApplications);
+		Assertions.assertEquals(1, scaledDownAmountOfApplications);
 	}
 }
