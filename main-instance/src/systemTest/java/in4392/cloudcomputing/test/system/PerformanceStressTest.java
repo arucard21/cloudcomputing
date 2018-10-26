@@ -6,16 +6,23 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import in4392.cloudcomputing.maininstance.InstanceMetrics;
 
 public class PerformanceStressTest extends SystemTest{
 	
@@ -73,6 +80,16 @@ public class PerformanceStressTest extends SystemTest{
 		long throughput = totalInputVideoSize/totalDuration;
 		System.err.printf("Execution time (in ISO8601 format) for %d requests: %s\n", amountOfRequests, requestDuration.toString());
 		System.err.printf("Throughput for %d requests is : %s Bytes per second\n", amountOfRequests, throughput);
+		URI mainInstanceMetricsURI = UriBuilder.fromUri(mainInstanceURI)
+				.port(8080)
+				.path("main")
+				.path("metrics")
+				.build();
+		Map<String, InstanceMetrics> metrics = client.target(mainInstanceMetricsURI)
+				.request()
+				.get(new GenericType<Map<String, InstanceMetrics>>(
+						new TypeReference<Map<String, InstanceMetrics>>() {}.getType()));
+		System.err.println(Arrays.toString(metrics.entrySet().toArray()));
 	}
 	
 	@Test

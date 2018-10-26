@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.Response;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.model.Instance;
 
+import in4392.cloudcomputing.maininstance.InstanceMetrics;
 import in4392.cloudcomputing.maininstance.MainInstance;
 
 @Named
@@ -71,7 +73,6 @@ public class MainInstanceEndpoint {
 		}
 		return Response.ok(new SimpleStatus("The Main instance was already stopped")).build();
 	}
-
 
 	/**
 	 * 
@@ -188,5 +189,11 @@ public class MainInstanceEndpoint {
 	public Response backupApplicationCounter(@QueryParam("applicationId") String applicationId, @QueryParam("counter") int counter) {
 		MainInstance.setBackupApplicationCounter(applicationId, counter);
 		return Response.ok().build();
+	}
+	
+	@Path("metrics")
+	@GET
+	public Map<String, InstanceMetrics> retrieveMetrics() {
+		return MainInstance.getMetricsForInstances();
 	}
 }

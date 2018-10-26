@@ -507,16 +507,6 @@ public class MainInstance {
 		DescribeInstancesRequest request = new DescribeInstancesRequest()
 				.withInstanceIds(getInstanceIDsFromAppOrchestrator())
 				.withInstanceIds(shadow.getInstanceId(), appOrchestrator.getInstanceId());
-		
-		// This part covers the Monitoring subsection of what resources are used in the
-		// system.	
-		// TODO Usage of resources by the system can be the total of the aforementioned
-		// ones or the description of AWS resources used(basically everything present in
-		// the EC2 dashboard).
-		// TODO The number of users can be requested by the Load Balancer.
-		// TODO The performance part could be the time the system takes to fully handle
-		// a user request, measured by the Load Balancer again
-
 		while (true) {
 			DescribeInstancesResult response = EC2.getClient().describeInstances(request);
 
@@ -533,6 +523,10 @@ public class MainInstance {
 				break;
 			}
 		}
+	}
+
+	public static Map<String, InstanceMetrics> getMetricsForInstances() {
+		return metricsForInstances;
 	}
 
 	private static List<String> getInstanceIDsFromAppOrchestrator() throws URISyntaxException {
@@ -560,8 +554,6 @@ public class MainInstance {
 		Dimension instanceDimension = new Dimension();
 		instanceDimension.setName("InstanceId");
 		instanceDimension.setValue(instance.getInstanceId());
-		// TODO Include other metrics besides cloudwatch
-		// TODO Store/present values in useful way for the rest of the system
 		for (String metricName : metricNames) {
 			additionalMetrics.put(metricName, getSingleMetric(instanceDimension, metricName));
 		}
