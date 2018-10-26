@@ -64,8 +64,9 @@ public class UserApplicationEndpoint {
 				e.printStackTrace();
 			}
 		}
+		String outputFormat = ".mkv";
         File inputFile =  Paths.get(UUID.randomUUID().toString()).toFile();
-        File outputFile =  Paths.get(UUID.randomUUID().toString()).toFile();
+        File outputFile =  Paths.get(UUID.randomUUID().toString( )+ outputFormat).toFile();
         
         Files.copy(data, inputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		
