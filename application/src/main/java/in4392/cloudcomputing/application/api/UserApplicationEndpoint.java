@@ -50,7 +50,7 @@ public class UserApplicationEndpoint {
 	@POST
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	public Response convert(
+	public InputStream convert(
 			InputStream data, 
 			@DefaultValue("false") 
 			@QueryParam("failApplication")
@@ -95,7 +95,7 @@ public class UserApplicationEndpoint {
 	    }
 		ByteArrayInputStream inMemOutputFile = new ByteArrayInputStream(Files.readAllBytes(outputFile.toPath()));
 		outputFile.delete();
-		return Response.ok(inMemOutputFile, MediaType.APPLICATION_OCTET_STREAM).build();
+		return inMemOutputFile;
 	}
 	
 }

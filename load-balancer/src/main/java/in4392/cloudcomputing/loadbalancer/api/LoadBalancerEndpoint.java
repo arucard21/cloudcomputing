@@ -1,7 +1,6 @@
 package in4392.cloudcomputing.loadbalancer.api;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -9,8 +8,10 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -54,45 +55,41 @@ public class LoadBalancerEndpoint {
 	 * 
 	 * @return the response from the instance
 	 * @throws URISyntaxException 
+	 * @throws IOException 
 	 */
 	@Path("entry")
 	@POST
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	public Response redirectRequest(
+	public InputStream redirectRequest(
 			InputStream data, 
 			@DefaultValue("false") 
 			@QueryParam("failApplication") 
-			boolean failApplication) throws URISyntaxException {
+			boolean failApplication) throws URISyntaxException, IOException {
 		
-		System.out.println("Store input video to a stream");
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-		byte[] buffer = new byte[1024];
-		int len;
-		try {
-			while ((len = data.read(buffer)) > -1 ) {
-			    baos.write(buffer, 0, len);
-			}
-		} catch (IOException e3) {
-			e3.printStackTrace();
-		}
-		try {
-			baos.flush();
-		} catch (IOException e3) {
-			e3.printStackTrace();
-		}
-
-		InputStream is = new ByteArrayInputStream(baos.toByteArray()); 
+		System.out.println("Store input video to a file");
+		File inputFile =  Paths.get(UUID.randomUUID().toString()).toFile();
+        
+        Files.copy(data, inputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        
 		System.out.println("Requesting application instance from AppOrchestrator");
-		String instanceID = ClientBuilder.newClient().target(UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("leastUtilizedInstance").build()).request().get(String.class);
+		String instanceID = ClientBuilder.newClient()
+				.target(
+						UriBuilder.fromUri(appOrchestratorURI)
+						.port(8080)
+						.path("application-orchestrator")
+						.path("leastUtilizedInstance")
+						.build())
+				.request()
+				.get(String.class);
 		String instanceDN = EC2.retrieveEC2InstanceWithId(instanceID).getPublicDnsName();
-		URI instanceURI = new URI("http",instanceDN ,"","");
-		System.out.println("Redirecting video to application server " + instanceID);
-		Response video = null ;
-		boolean flag = true;
+		URI instanceURI = new URI("http", instanceDN , "", "");
+		System.out.println("Redirecting video to application server " + instanceID + "at " + instanceURI.toString());
+		
+		InputStream video = null ;
+		boolean waitingForConvertedVideo = true;
 		int attempts = 0;
-		while (flag && attempts < 10) { 
+		while (waitingForConvertedVideo && attempts < 10) { 
 			try {
 				 video = ClientBuilder.newClient().
 						 target(
@@ -103,11 +100,14 @@ public class LoadBalancerEndpoint {
 								 .queryParam("failApplication", failApplication)
 								 .build())
 						 .request()
-						 .post(Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM));
+						 .post(
+								 Entity.entity(
+										 Files.newInputStream(inputFile.toPath()), 
+										 MediaType.APPLICATION_OCTET_STREAM),
+								 InputStream.class);
 				 System.out.println("Returning converted video to the user");
-				 flag = false;
+				 waitingForConvertedVideo = false;
 			} catch (Exception e) {
-				is = null;
 				System.out.println("Decreasing request counter in app orchestrator since the request to this application instance failed");
 				decrementRequestsForApplication(instanceID);
 				System.out.println("Retrying connection after sleeping for 20 seconds");
@@ -116,16 +116,25 @@ public class LoadBalancerEndpoint {
 				} catch (InterruptedException e2) {
 					e2.printStackTrace();
 				}
-				attempts += 1;
-				System.out.println("Requesting application instance from AppOrchestrator");
-				instanceID = ClientBuilder.newClient().target(UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("leastUtilizedInstance").build()).request().get(String.class);
-				System.out.println("Retrying connection");
-				is = new ByteArrayInputStream(baos.toByteArray()); 
-
+				attempts++;
+				System.out.println("Requesting new application instance from AppOrchestrator");
+				instanceID = ClientBuilder.newClient().
+						target(
+								UriBuilder.fromUri(appOrchestratorURI)
+								.port(8080)
+								.path("application-orchestrator")
+								.path("leastUtilizedInstance")
+								.build())
+						.request()
+						.get(String.class);
+				System.out.println("Retrying request");
 			}
 		}
 		System.out.println("Decreasing request counter in app orchestrator");
 		decrementRequestsForApplication(instanceID);
+		
+		System.out.println("Deleting original input video");
+		inputFile.delete();
 		
 		System.out.println("Returning converted video to the user");
 		return video;
