@@ -70,11 +70,13 @@ public class ApplicationScalingTest extends SystemTest{
 	}
 	
 	private int getAmountOfDeployedApplicationsFromAppOrchestrator() {
-		Collection<Instance> applications = client
-				.target(applicationOrchestratorURI)
+		URI applicationOrchestratorAPIURI = UriBuilder.fromUri(applicationOrchestratorURI)
+				.port(8080)
 				.path("application-orchestrator")
 				.path("instances")
 				.path("applications")
+				.build();
+		Collection<Instance> applications = client.target(applicationOrchestratorAPIURI)
 				.request()
 				.get(new GenericType<Collection<Instance>>(new TypeReference<Collection<Instance>>() {}.getType()));
 		return applications.size();
