@@ -71,8 +71,8 @@ public class PerformanceStressTest extends SystemTest{
 		
 		Duration requestDuration = Duration.ofMillis(totalDuration);
 		long throughput = totalInputVideoSize/totalDuration;
-		System.out.printf("Execution time (in ISO8601 format) for %d requests: %s\n", amountOfRequests, requestDuration.toString());
-		System.out.printf("Throughput for %d requests is : %s Bytes per second\n", amountOfRequests, throughput);
+		System.err.printf("Execution time (in ISO8601 format) for %d requests: %s\n", amountOfRequests, requestDuration.toString());
+		System.err.printf("Throughput for %d requests is : %s Bytes per second\n", amountOfRequests, throughput);
 	}
 	
 	@Test
