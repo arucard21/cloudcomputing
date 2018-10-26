@@ -193,20 +193,30 @@ public class AppOrchestrator {
 		if (loadBalancer == null) {
 			return false;
 		}
-		URI loadBalancerURI = new URI("http", loadBalancer.getPublicDnsName(), null, null);
-		URI loadBalancerHealth = UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("health").build();
-		int httpStatus = ClientBuilder.newClient().target(loadBalancerHealth).request().get().getStatus();
-		return loadBalancer.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		try {
+			URI loadBalancerURI = new URI("http", loadBalancer.getPublicDnsName(), null, null);
+			URI loadBalancerHealth = UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("health").build();
+			int httpStatus = ClientBuilder.newClient().target(loadBalancerHealth).request().get().getStatus();
+			return loadBalancer.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		} catch(Exception e) {
+			System.out.println("Load Balancer not alive");
+			return false;
+		}
 	}
 	
 	public static boolean isAppInstanceAlive(Instance appInstance) throws NoSuchAlgorithmException, IOException, URISyntaxException {
 		if (appInstance == null) {
 			return false;
 		}
-		URI appInstanceURI = new URI("http", appInstance.getPublicDnsName(), null, null);
-		URI appInstanceHealth = UriBuilder.fromUri(appInstanceURI).port(8080).path("application").path("health").build();
-		int httpStatus = ClientBuilder.newClient().target(appInstanceHealth).request().get().getStatus();
-		return loadBalancer.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		try {
+			URI appInstanceURI = new URI("http", appInstance.getPublicDnsName(), null, null);
+			URI appInstanceHealth = UriBuilder.fromUri(appInstanceURI).port(8080).path("application").path("health").build();
+			int httpStatus = ClientBuilder.newClient().target(appInstanceHealth).request().get().getStatus();
+			return loadBalancer.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		}catch(Exception e) {
+			System.out.println("AppInstance not Alive");
+			return false;
+		}
 	}
 	
 	private static void recoverLoadBalancer() throws NoSuchAlgorithmException, IOException, URISyntaxException {

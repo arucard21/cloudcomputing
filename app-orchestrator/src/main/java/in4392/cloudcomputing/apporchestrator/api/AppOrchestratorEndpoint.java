@@ -101,8 +101,9 @@ public class AppOrchestratorEndpoint {
 		int currentRequests = AppOrchestrator.incrementRequests(minId);
 		if (currentRequests == MAX_REQUESTS_PER_INSTANCE) 
 			AppOrchestrator.setInstanceFreeStatus(minId, false);
-		System.out.println("Sent app instance " + minId + " to load balancer");
-		return Response.ok().entity(minId).build();
+		String minURI = EC2.retrieveEC2InstanceWithId(minId).getPublicDnsName(); 
+		System.out.println("Sent app instance " + minURI + " to load balancer");
+		return Response.ok().entity(minURI).build();
 	}
 	
 	/**

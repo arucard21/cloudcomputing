@@ -123,4 +123,25 @@ public class MainInstanceEndpoint {
 		MainInstance.configureThisInstanceAsShadowWithProvidedInstanceAsMain(mainInstanceId);
 		return Response.ok().build();
 	}
+	
+	@Path("started")
+	@GET
+	public Response startDeployedMain() {
+		MainInstance.setStarted(true);
+		return Response.ok().build();
+	}
+	
+	@Path("appOrchestrator")
+	@GET
+	public Response storeAppOrchestrator(@QueryParam("appOrchestratorId") String appOrchestratorId) {
+		MainInstance.setAppOrchestrator(appOrchestratorId);
+		return Response.ok().build();
+	}
+	
+	@Path("set-shadow")
+	@GET
+	public Response storeSahdow(@QueryParam("shadowId") String shadowId) {
+		MainInstance.setShadow(shadowId);
+		return Response.ok().build();
+	}
 }

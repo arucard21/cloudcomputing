@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -53,12 +54,13 @@ public class LoadBalancerEndpoint {
 	 * Send the request to the correct instance in order to balance the load.
 	 * 
 	 * @return the response from the instance
+	 * @throws URISyntaxException 
 	 */
 	@Path("entry")
 	@POST
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	public Response redirectRequest(InputStream data) {
+	public Response redirectRequest(InputStream data) throws URISyntaxException {
 		
 		System.out.println("Store input video to a stream");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -101,14 +103,16 @@ public class LoadBalancerEndpoint {
 		}
 	
 
-		String instanceID =  sb.toString();
-		System.out.println("Redirecting video to application server " + instanceID);
+		String instanceDN =  sb.toString();
+		System.out.println("Redirecting video to application server " + instanceDN);
+		URI instanceURI = new URI("http",instanceDN,"","");
 		Response video = null ;
 		boolean flag = true;
 		int attempts = 0;
 		while (flag && attempts < 10) { 
 			try {
-				 video = ClientBuilder.newClient().target(UriBuilder.fromUri(instanceID).port(8080).path("application").path("video").build()).request().post(Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM));
+				 video = ClientBuilder.newClient().target(UriBuilder.fromUri(instanceURI).port(8080).path("application").path("video").build()).request().post(Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM));
+				 System.out.println("Returning converted video to the user");
 				 flag = false;
 			} catch (Exception e) {
 				is = null;
@@ -142,7 +146,6 @@ public class LoadBalancerEndpoint {
 
 			}
 		}
-		System.out.println("Returning converted video to the user");
 		return video;
 	}
 	
@@ -156,8 +159,8 @@ public class LoadBalancerEndpoint {
 	@Path("appOrchestratorURI")
 	@POST
 	@Consumes(MediaType.TEXT_PLAIN)
-	public Response setAppOrchestratorURI(String uri) {
-		appOrchestratorURI = UriBuilder.fromUri(uri).build();
+	public Response setAppOrchestratorURI(String uri) throws URISyntaxException {
+		appOrchestratorURI = new URI("http",uri,"","");
 		System.out.println("AppOrchestrator is at " + appOrchestratorURI);
 		return Response.ok().build();
 	}

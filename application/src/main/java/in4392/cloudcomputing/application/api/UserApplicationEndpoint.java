@@ -11,6 +11,9 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Random;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -24,6 +27,13 @@ import javax.ws.rs.core.Response;
 @Named
 @Path("application")
 public class UserApplicationEndpoint {
+	private static final String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String lower = upper.toLowerCase(Locale.ROOT);
+    private static final String digits = "0123456789";
+    private static final String alphanum = upper + lower + digits;
+
+
+	
 	/**
 	 * 
 	 * @return a 204 HTTP status with no content, if successful
@@ -47,7 +57,25 @@ public class UserApplicationEndpoint {
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	public Response convert(InputStream data) {
-	
+		Random random = new Random();
+		int length = Math.abs(random.nextInt());
+		char[] buf = new char[length];
+		
+		for (int idx = 0; idx < buf.length; ++idx)
+            buf[idx] = alphanum.toCharArray()[random.nextInt(alphanum.length())];
+        String input =  new String(buf);
+        
+        length = Math.abs(random.nextInt());
+		buf = new char[length];
+		
+		for (int idx = 0; idx < buf.length; ++idx)
+            buf[idx] = alphanum.toCharArray()[random.nextInt(alphanum.length())];
+        String output =  new String(buf);
+        
+        
+        
+		// Problems if serving multiple requests as files have the same name
+		/*
 		File previousOutputFile = new File("input.mkv");
 		if (previousOutputFile.exists()) 
 		{
@@ -59,13 +87,13 @@ public class UserApplicationEndpoint {
 			{ 
 				System.out.println("Failed to delete the previous output file"); 
 			}
-		}
+		}*/
 		
 		byte[] buffer = new byte[4096];
 		int n;
 		
 		try {
-			OutputStream inp = new FileOutputStream(new File("input"));
+			OutputStream inp = new FileOutputStream(new File(input));
 			try {
 				while ((n = data.read(buffer)) != -1) 
 				{
@@ -83,7 +111,7 @@ public class UserApplicationEndpoint {
 		}
 		
 		try {
-	        String cmd = "ffmpeg -i  input -codec:v libx264 -codec:a copy input.mkv";
+	        String cmd = "ffmpeg -i " + input + " -codec:v libx264 -codec:a copy " + output;
 	     	System.out.println("Executing command: " + cmd);
 	        Process p = Runtime.getRuntime().exec(cmd);
 	        int result = p.waitFor();
@@ -102,9 +130,9 @@ public class UserApplicationEndpoint {
 	        e.printStackTrace();
 	    }
 		
-		 File outputFile = new File("input.mkv");
+		 File outputFile = new File(output);
 		 
-		 File inputFile = new File("input"); 
+		 File inputFile = new File(input); 
          
 	     if(inputFile.delete()) 
 	     { 

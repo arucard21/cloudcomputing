@@ -55,8 +55,8 @@ public class MainInstance {
 	private static final String API_ROOT_MAIN = "main";
 	private static final String AWS_KEYPAIR_NAME = "accessibleFromMainInstance";
 	private static final int ITERATION_WAIT_TIME = 60 * 1000;
-	private static String mainInstanceDNS;
 	private static boolean keepAlive;
+	private static boolean started;
 	private static Instance mainInstance;
 	private static Instance shadow;
 	private static Instance appOrchestrator;
@@ -82,30 +82,32 @@ public class MainInstance {
 	protected static void startMainLoop() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		keepAlive = true;
 		while(keepAlive) {
-			if (EC2.getCredentials() == null) {
-				System.out.println("Waiting for AWS credentials, cannot start yet");
-			}
-			else {
-				if (behaveAsShadow()) {
-					System.out.println("Checking main instance liveness from shadow");
-					checkMainInstanceLiveness();
+			if (!started) {
+				if (EC2.getCredentials() == null) {
+					System.out.println("Waiting for AWS credentials, cannot start yet");
 				}
-				else{
-					updateEC2InstanceForMainInstance();
-					if (!isShadowDeployed()) {
-						System.out.println("Deploying shadow");
-						deployShadow();
+				else {
+					if (behaveAsShadow()) {
+						System.out.println("Checking main instance liveness from shadow");
+						checkMainInstanceLiveness();
 					}
-					if(!isAppOrchestratorDeployed()) {
-						System.out.println("Deploying app orchestrator");
-						deployAppOrchestrator();
+					else{
+						updateEC2InstanceForMainInstance();
+						if (!isShadowDeployed()) {
+							System.out.println("Deploying shadow");
+							deployShadow();
+						}
+						if(!isAppOrchestratorDeployed()) {
+							System.out.println("Deploying app orchestrator");
+							deployAppOrchestrator();
+						}
+						System.out.println("Checking shadow liveness from main instance");
+						checkShadowInstanceLiveness();
+						System.out.println("Checking app orchestrator liveness");
+						checkAppOrchestratorLiveness();
+						System.out.println("Start monitoring");
+						monitor();
 					}
-					System.out.println("Checking shadow liveness from main instance");
-					checkShadowInstanceLiveness();
-					System.out.println("Checking app orchestrator liveness");
-					checkAppOrchestratorLiveness();
-					System.out.println("Start monitoring");
-					monitor();
 				}
 			}
 			waitUntilNextIteration();
@@ -179,6 +181,7 @@ public class MainInstance {
 				break;
 			case INSTANCE_TYPE_SHADOW:
 				deployShadow();
+				sendRequestWithParameter(shadow, "main", "appOrchestrator", "appOrchestratorId");
 				break;
 			case INSTANCE_TYPE_APP_ORCHESTRATOR:
 				deployAppOrchestrator();
@@ -203,10 +206,11 @@ public class MainInstance {
 		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), mainInstance);
 		EC2.startDeployedApplication(mainInstance, "main-instance");
 		waitForApplicationToStart();
+		sendRequestWithParameter(mainInstance, "main", "appOrchestrator", "appOrchestratorId");
+		sendRequestWithParameter(mainInstance, "main", "set-shadow", "shadowId");
 		uploadCredentials(mainInstance, API_ROOT_MAIN);
+		sendSimpleRequest(mainInstance, "main", "started");
 		System.out.println("Main Instance application started");
-		mainInstanceDNS = mainInstance.getPrivateDnsName();
-			
 	}
 
 	private static void deployShadow() throws IOException, NoSuchAlgorithmException, URISyntaxException {
@@ -221,6 +225,7 @@ public class MainInstance {
 		waitForApplicationToStart();
 		uploadCredentials(shadow, API_ROOT_MAIN);
 		configureProvidedInstanceAsShadow(shadow);
+		sendSimpleRequest(shadow,"main","started");
 		System.out.println("Shadow application started");
 	}
 
@@ -235,7 +240,7 @@ public class MainInstance {
 		EC2.startDeployedApplication(appOrchestrator, "app-orchestrator");
 		waitForApplicationToStart();
 		uploadCredentials(appOrchestrator, "application-orchestrator");
-		System.out.println("App Orchestrator started");
+		sendRequestWithParameter(shadow, "main", "appOrchestrator", "appOrchestratorId");	
 	}
 
 	private static void updateEC2InstanceForMainInstance() {
@@ -259,15 +264,18 @@ public class MainInstance {
 		if (mainInstance == null) {
 			return false;
 		}
-		URI mainInstanceURI = new URI("http", mainInstanceDNS, null, null);
+		// Didn't find another way about it. Tried mainstanceDNS is null, "" or has length 0,
+		// but that check may pass and the request may fail midway 
 		try {
+			URI mainInstanceURI = new URI("http", mainInstance.getPublicDnsName(), null, null);
 			URI mainInstanceHealth = UriBuilder.fromUri(mainInstanceURI).port(8080).path(API_ROOT_MAIN).path("health").build();
 			int httpStatus = ClientBuilder.newClient().target(mainInstanceHealth).request().get().getStatus();
 			return mainInstance.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
 		}catch(Exception e) {
-			System.out.println("Exception");
+			System.out.println("Main Instance not alive");
 			return false;
 		}
+		
 	}
 	
 	private static boolean isShadowInstanceAlive() throws URISyntaxException {
@@ -275,10 +283,15 @@ public class MainInstance {
 		if(shadow == null) {
 			return false;
 		}
-		URI shadowInstanceURI = new URI("http", shadow.getPublicDnsName(), null, null);
-		URI shadowInstanceHealth = UriBuilder.fromUri(shadowInstanceURI).port(8080).path(API_ROOT_MAIN).path("health").build();
-		int httpStatus = ClientBuilder.newClient().target(shadowInstanceHealth).request().get().getStatus();
-		return shadow.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		try  {
+			URI shadowInstanceURI = new URI("http", shadow.getPublicDnsName(), null, null);
+			URI shadowInstanceHealth = UriBuilder.fromUri(shadowInstanceURI).port(8080).path(API_ROOT_MAIN).path("health").build();
+			int httpStatus = ClientBuilder.newClient().target(shadowInstanceHealth).request().get().getStatus();
+			return shadow.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		} catch(Exception e) {
+			System.out.println("Shadow Instance not alive");
+			return false;
+		}
 	}
 	
 	private static boolean isAppOrchestratorAlive() throws URISyntaxException {
@@ -286,14 +299,15 @@ public class MainInstance {
 		if (appOrchestrator == null) {
 			return false;
 		}
-		System.out.println(appOrchestrator.getPublicDnsName());
-		if (appOrchestrator.getPublicDnsName() != ""){ 
+		try {
 			URI appOrchestratorURI = new URI("http", appOrchestrator.getPublicDnsName(), null, null);
 			URI appOrchestratorHealth = UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("health").build();
 			int httpStatus = ClientBuilder.newClient().target(appOrchestratorHealth).request().get().getStatus();
 			return appOrchestrator.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+		} catch(Exception e) {
+			System.out.println("App Orchestrator not alive");
+			return false;
 		}
-		return false;
 	}
 
 	public static boolean isAlive() {
@@ -328,7 +342,6 @@ public class MainInstance {
 		MainInstance.isShadow = true;
 		System.out.println(mainInstanceId);
 		mainInstance = EC2.retrieveEC2InstanceWithId(mainInstanceId);
-		mainInstanceDNS = mainInstance.getPublicDnsName(); 
 		shadow = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
 	}
 	
@@ -470,5 +483,28 @@ public class MainInstance {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void setStarted(boolean value) {
+		MainInstance.started = value;
+	}
+
+	public static void setAppOrchestrator(String appOrchestratorId) {
+		appOrchestrator = EC2.retrieveEC2InstanceWithId(appOrchestratorId);
+	}
+
+	public static void setShadow(String shadowId) {
+		shadow = EC2.retrieveEC2InstanceWithId(shadowId);
+	}
+	
+	public static void sendSimpleRequest(Instance instance, String mainPath, String secondaryPath) throws URISyntaxException {
+		URI instanceURI = new URI("http", instance.getPublicDnsName(), null, null);
+		URI instancePathURI = UriBuilder.fromUri(instanceURI).port(8080).path(mainPath).path(secondaryPath).build();
+		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(instancePathURI).request().get();
+	}
+	public static void sendRequestWithParameter(Instance instance, String mainPath, String secondaryPath, String parameterName) throws URISyntaxException {
+		URI instanceURI = new URI("http", instance.getPublicDnsName(), null, null);
+		URI instancePathURI = UriBuilder.fromUri(instanceURI).port(8080).path(mainPath).path(secondaryPath).queryParam(parameterName, instance.getInstanceId()).build();
+		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(instancePathURI).request().get();
 	}
 }
