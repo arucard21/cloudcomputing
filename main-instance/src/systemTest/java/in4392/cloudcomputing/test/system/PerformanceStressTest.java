@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.UriBuilder;
@@ -18,7 +17,7 @@ public class PerformanceStressTest extends SystemTest{
 	@Test
 	public void measureLatency() throws IOException {
 		URI getLoadBalancerEntry = UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("entry").build();
-		InputStream inputVideo = Files.newInputStream(Paths.get("inputVideo.avi"));
+		InputStream inputVideo = Files.newInputStream(testVideoSmall);
 		long startTime = System.currentTimeMillis();
 		InputStream outputVideo = client.target(getLoadBalancerEntry).request().post(Entity.entity(inputVideo, MediaType.APPLICATION_OCTET_STREAM_VALUE), InputStream.class);
 		Assertions.assertNotNull(outputVideo);
@@ -31,7 +30,7 @@ public class PerformanceStressTest extends SystemTest{
 	@Test
 	public void measureThroughput() throws IOException {
 		URI getLoadBalancerEntry = UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("entry").build();
-		InputStream inputVideo = Files.newInputStream(Paths.get("inputVideo.avi"));
+		InputStream inputVideo = Files.newInputStream(testVideoSmall);
 		long inputVideoSize = new File("input").length();
 		long startTime = System.currentTimeMillis();
 		

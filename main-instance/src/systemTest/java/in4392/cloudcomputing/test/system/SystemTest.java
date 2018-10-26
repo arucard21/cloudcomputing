@@ -2,6 +2,8 @@ package in4392.cloudcomputing.test.system;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 
 import javax.ws.rs.client.Client;
@@ -27,6 +29,8 @@ public abstract class SystemTest {
 	URI loadBalancerURI;
 	String loadBalancerID;
 	Collection<Instance> applications;
+	
+	Path testVideoSmall = Paths.get("sintel_trailer-480p.mp4");
 	
 	@BeforeEach
 	public void initializeTestVariables() throws URISyntaxException {
