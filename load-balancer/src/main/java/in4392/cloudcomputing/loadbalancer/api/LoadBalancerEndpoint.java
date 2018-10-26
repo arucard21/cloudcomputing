@@ -1,12 +1,9 @@
 package in4392.cloudcomputing.loadbalancer.api;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -84,28 +81,10 @@ public class LoadBalancerEndpoint {
 
 		InputStream is = new ByteArrayInputStream(baos.toByteArray()); 
 		System.out.println("Requesting application instance from AppOrchestrator");
-		InputStream appOrcData = (InputStream) ClientBuilder.newClient().target(UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("leastUtilizedInstance").build()).request().get().getEntity();
-		Reader reader = new InputStreamReader(appOrcData, StandardCharsets.UTF_8);
-		BufferedReader br = new BufferedReader(reader);
-
-		StringBuilder sb = new StringBuilder();
-		String line;
-
-		try {
-			while ((line = br.readLine()) != null) {
-				sb.append(line);
-				//sb.append('\n');
-			}
-			br.close();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-	
-
-		String instanceDN =  sb.toString();
-		System.out.println("Redirecting video to application server " + instanceDN);
-		URI instanceURI = new URI("http",instanceDN,"","");
+		String instanceID = ClientBuilder.newClient().target(UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("leastUtilizedInstance").build()).request().get(String.class);
+		String instanceDN = EC2.retrieveEC2InstanceWithId(instanceID).getPublicDnsName();
+		URI instanceURI = new URI("http",instanceDN ,"","");
+		System.out.println("Redirecting video to application server " + instanceID);
 		Response video = null ;
 		boolean flag = true;
 		int attempts = 0;
@@ -116,6 +95,8 @@ public class LoadBalancerEndpoint {
 				 flag = false;
 			} catch (Exception e) {
 				is = null;
+				System.out.println("Decreasing request counter in app orchestrator since the request to this application instance failed");
+				decrementRequestsForApplication(instanceID);
 				System.out.println("Retrying connection after sleeping for 20 seconds");
 				try {
 					Thread.sleep(RETRY_WAIT_TIME);
@@ -124,29 +105,28 @@ public class LoadBalancerEndpoint {
 				}
 				attempts += 1;
 				System.out.println("Requesting application instance from AppOrchestrator");
-				appOrcData = (InputStream) ClientBuilder.newClient().target(UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("leastUtilizedInstance").build()).request().get().getEntity();
-				reader = new InputStreamReader(appOrcData, StandardCharsets.UTF_8);
-				br = new BufferedReader(reader);
-
-				sb = new StringBuilder();
-				
-
-				try {
-					while ((line = br.readLine()) != null) {
-						sb.append(line);
-					//	sb.append('\n');
-					}
-					br.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				instanceID = ClientBuilder.newClient().target(UriBuilder.fromUri(appOrchestratorURI).port(8080).path("application-orchestrator").path("leastUtilizedInstance").build()).request().get(String.class);
 				System.out.println("Retrying connection");
 				is = new ByteArrayInputStream(baos.toByteArray()); 
 
 			}
 		}
+		System.out.println("Decreasing request counter in app orchestrator");
+		decrementRequestsForApplication(instanceID);
+		
+		System.out.println("Returning converted video to the user");
 		return video;
+	}
+
+	private void decrementRequestsForApplication(String instanceID) {
+		ClientBuilder.newClient()
+		.target(UriBuilder.fromUri(appOrchestratorURI).port(8080)
+				.path("application-orchestrator")
+				.path("completed")
+				.queryParam("id", instanceID)
+				.build())
+		.request()
+		.get();
 	}
 	
 	

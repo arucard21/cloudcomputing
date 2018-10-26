@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -42,18 +43,48 @@ public class MainInstanceEndpoint {
 			return Response.serverError().build();
 		}
 	}
-
+	
+	/**
+	 * 
+	 * @return a 200 HTTP status with a simple message, if successful
+	 */
+	@Path("start")
+	@GET
+	public Response start() {
+		if(!MainInstance.isStarted()) {
+			MainInstance.start();
+			return Response.ok(new SimpleStatus("The Main instance has been started")).build();
+		}
+		return Response.ok(new SimpleStatus("The Main instance was already started")).build();
+	}
+	
 	/**
 	 * 
 	 * @return a 200 HTTP status with a simple message, if successful
 	 */
 	@Path("stop")
 	@GET
-	public Response stopMain() {
-		if(MainInstance.isAlive()) {
-			MainInstance.stopMainLoop();
+	public Response stop() {
+		if(MainInstance.isStarted()) {
+			MainInstance.stop();
+			return Response.ok(new SimpleStatus("The Main instance has been stopped")).build();
 		}
-		return Response.ok(new SimpleStatus("The Main instance loop has been stopped")).build();
+		return Response.ok(new SimpleStatus("The Main instance was already stopped")).build();
+	}
+
+
+	/**
+	 * 
+	 * @return a 200 HTTP status with a simple message, if successful
+	 */
+	@Path("kill")
+	@GET
+	public Response kill() {
+		if(MainInstance.isAlive()) {
+			MainInstance.kill();
+			return Response.ok(new SimpleStatus("The Main instance has been killed")).build();
+		}
+		return Response.ok(new SimpleStatus("The Main instance was already killed")).build();
 	}
 	
 	/**
@@ -124,24 +155,38 @@ public class MainInstanceEndpoint {
 		return Response.ok().build();
 	}
 	
-	@Path("started")
+	@Path("backup/shadow")
 	@GET
-	public Response startDeployedMain() {
-		MainInstance.setStarted(true);
+	public Response backupShadowInstanceId(@QueryParam("shadowInstanceId") String shadowInstanceId) {
+		MainInstance.setRestoreIdForShadow(shadowInstanceId);
 		return Response.ok().build();
 	}
 	
-	@Path("appOrchestrator")
+	@Path("backup/application-orchestrator")
 	@GET
-	public Response storeAppOrchestrator(@QueryParam("appOrchestratorId") String appOrchestratorId) {
-		MainInstance.setAppOrchestrator(appOrchestratorId);
+	public Response backupAppOrchestratorInstanceId(@QueryParam("appOrchestratorId") String appOrchestratorId) {
+		MainInstance.setRestoreIdForAppOrchestrator(appOrchestratorId);
 		return Response.ok().build();
 	}
 	
-	@Path("set-shadow")
+	@Path("backup/load-balancer")
 	@GET
-	public Response storeSahdow(@QueryParam("shadowId") String shadowId) {
-		MainInstance.setShadow(shadowId);
+	public Response backupLoadBalancerInstanceId(@QueryParam("loadBalancerId") String loadBalancerId) {
+		MainInstance.setRestoreIdForLoadBalancer(loadBalancerId);
+		return Response.ok().build();
+	}
+	
+	@Path("backup/applications")
+	@GET
+	public Response backupApplicationInstanceIds(@QueryParam("applicationIds") List<String> applicationIds) {
+		MainInstance.setRestoreIdsForApplications(applicationIds);
+		return Response.ok().build();
+	}
+	
+	@Path("backup/application-counter")
+	@GET
+	public Response backupApplicationCounter(@QueryParam("applicationId") String applicationId, @QueryParam("counter") int counter) {
+		MainInstance.setBackupApplicationCounter(applicationId, counter);
 		return Response.ok().build();
 	}
 }

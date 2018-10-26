@@ -1,13 +1,16 @@
 package in4392.cloudcomputing.apporchestrator.api;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -16,6 +19,7 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -31,7 +35,6 @@ import in4392.cloudcomputing.apporchestrator.Target;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class AppOrchestratorEndpoint {
-	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
 	/**
 	 * 
 	 * @return a 204 HTTP status with no content, if successful
@@ -40,6 +43,49 @@ public class AppOrchestratorEndpoint {
 	@GET
 	public Response healthCheck() {
 		return Response.noContent().build();
+	}
+	
+	/**
+	 * 
+	 * @return a 200 HTTP status with a simple message, if successful
+	 */
+	@Path("start")
+	@GET
+	public Response start() {
+		if(!AppOrchestrator.isStarted()) {
+			AppOrchestrator.start();
+			return Response.ok(new SimpleStatus("The Main instance has been started")).build();
+		}
+		return Response.ok(new SimpleStatus("The Main instance was already started")).build();
+	}
+	
+	/**
+	 * 
+	 * @return a 200 HTTP status with a simple message, if successful
+	 */
+	@Path("stop")
+	@GET
+	public Response stop() {
+		if(AppOrchestrator.isStarted()) {
+			AppOrchestrator.stop();
+			return Response.ok(new SimpleStatus("The Main instance has been stopped")).build();
+		}
+		return Response.ok(new SimpleStatus("The Main instance was already stopped")).build();
+	}
+
+
+	/**
+	 * 
+	 * @return a 200 HTTP status with a simple message, if successful
+	 */
+	@Path("kill")
+	@GET
+	public Response kill() {
+		if(AppOrchestrator.isAlive()) {
+			AppOrchestrator.kill();
+			return Response.ok(new SimpleStatus("The Main instance has been killed")).build();
+		}
+		return Response.ok(new SimpleStatus("The Main instance was already killed")).build();
 	}
 
 	@Path("log")
@@ -58,33 +104,10 @@ public class AppOrchestratorEndpoint {
 	@Path("instances/applications")
 	@GET
 	public Collection<Instance> describeApplications() {
-		return AppOrchestrator.getApplicationEC2Instances().values();
-	}
-
-	/**
-	 * 
-	 * @return a 200 HTTP status with a simple message, if successful
-	 */
-	@Path("start")
-	@GET
-	public Response startMain() {
-		if(!AppOrchestrator.isAlive()) {
-			AppOrchestrator.restartMainLoop();
-		}
-		return Response.ok(new SimpleStatus("The Main instance loop has been started")).build();
-	}
-	
-	/**
-	 * 
-	 * @return a 200 HTTP status with a simple message, if successful
-	 */
-	@Path("stop")
-	@GET
-	public Response stopMain() {
-		if(AppOrchestrator.isAlive()) {
-			AppOrchestrator.stopMainLoop();
-		}
-		return Response.ok(new SimpleStatus("The Main instance loop has been stopped")).build();
+		return AppOrchestrator.getApplicationEC2Targets().values()
+				.stream()
+				.map((target) -> target.getTargetInstance())
+				.collect(Collectors.toList());
 	}
 	
 	
@@ -93,17 +116,15 @@ public class AppOrchestratorEndpoint {
 	 * Please check it guys, cause I am still experimenting with the api requests
 	 * @throws NoSuchAlgorithmException
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
 	@Path("leastUtilizedInstance")
 	@GET
-	public Response sendLeastLoaded() throws NoSuchAlgorithmException, IOException{
+	public Response sendLeastLoaded() throws NoSuchAlgorithmException, IOException, URISyntaxException{
 		String minId = AppOrchestrator.findLeastLoadedAppInstance();
-		int currentRequests = AppOrchestrator.incrementRequests(minId);
-		if (currentRequests == MAX_REQUESTS_PER_INSTANCE) 
-			AppOrchestrator.setInstanceFreeStatus(minId, false);
-		String minURI = EC2.retrieveEC2InstanceWithId(minId).getPublicDnsName(); 
-		System.out.println("Sent app instance " + minURI + " to load balancer");
-		return Response.ok().entity(minURI).build();
+		AppOrchestrator.incrementRequests(minId);
+		System.out.println("Sent app instance " + minId + " to load balancer");
+		return Response.ok().entity(minId).build();
 	}
 	
 	/**
@@ -122,10 +143,14 @@ public class AppOrchestratorEndpoint {
 	}
 	
 	/**
-	 * TODO method for receiving response from the LoadBalancer that the request has been 
+	 * method for receiving response from the LoadBalancer that the request has been 
 	 * transferred and completed so the currentRequests counter can be decremented
+	 * @throws URISyntaxException 
 	 */
-	public Response notificationForCompletedRequest() {
+	@Path("completed")
+	@GET
+	public Response notificationForCompletedRequest(@QueryParam("id") String applicationInstanceId) throws URISyntaxException {
+		AppOrchestrator.decrementRequests(applicationInstanceId);
 		return Response.ok().build();
 	}
 	
@@ -163,5 +188,33 @@ public class AppOrchestratorEndpoint {
 			throw new InternalServerErrorException("This instance does not have credentials configured");
 		}
 		return Response.ok(new SimpleStatus("This instance has credentials configured")).build();
+	}
+	
+	@Path("backup/main-instance")
+	@GET
+	public Response configureMainInstanceId(@QueryParam("mainInstanceId") String mainInstanceId) {
+		AppOrchestrator.setMainInstance(mainInstanceId);
+		return Response.ok().build();
+	}
+	
+	@Path("backup/load-balancer")
+	@GET
+	public Response backupLoadBalancerInstanceId(@QueryParam("loadBalancerId") String loadBalancerId) {
+		AppOrchestrator.setRestoreIdForLoadBalancer(loadBalancerId);
+		return Response.ok().build();
+	}
+	
+	@Path("backup/applications")
+	@GET
+	public Response backupApplicationInstanceIds(@QueryParam("applicationIds") List<String> applicationIds) {
+		AppOrchestrator.setRestoreIdsForApplications(applicationIds);
+		return Response.ok().build();
+	}
+	
+	@Path("backup/application-counter")
+	@GET
+	public Response backupApplicationCounter(@QueryParam("applicationId") String applicationId, @QueryParam("counter") int counter) {
+		AppOrchestrator.setBackupApplicationCounter(applicationId, counter);
+		return Response.ok().build();
 	}
 }

@@ -1,10 +1,10 @@
 package in4392.cloudcomputing.test.system;
 
-import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.UriBuilder;
@@ -15,24 +15,22 @@ import org.springframework.http.MediaType;
 
 public class EndToEndest extends SystemTest{
 	@Test
-	public void checkOutputVideoNormal() {
+	public void checkOutputVideoNormal() throws IOException {
 		URI getLoadBalancerEntry = UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("entry").build();
-		InputStream inputVideo = new FileInputStream("input");
-		InputStreamReader isr = new InputStreamReader(inputVideo, StandardCharsets.UTF_8);
+		InputStream inputVideo = Files.newInputStream(Paths.get("inputVideo.avi"));
 		
-	    InputStream outputVideo = client.target(getLoadBalancerEntry).request().post(Entity.entity(inputVideo,MediaType.APPLICATION_OCTET_STREAM));
+	    InputStream outputVideo = client.target(getLoadBalancerEntry).request().post(Entity.entity(inputVideo, MediaType.APPLICATION_OCTET_STREAM_VALUE), InputStream.class);
 		Assertions.assertNotNull(outputVideo);
 	}
 	
 	@Test
-	public void checkOutputVideoAppInstanceFail() {
+	public void checkOutputVideoAppInstanceFail() throws IOException {
 		URI getLoadBalancerEntry = UriBuilder.fromUri(loadBalancerURI).port(8080).path("entry").build();
-		InputStream inputVideo = new FileInputStream("input");
-		InputStreamReader isr = new InputStreamReader(inputVideo, StandardCharsets.UTF_8);
+		InputStream inputVideo = Files.newInputStream(Paths.get("inputVideo.avi"));
 		
 		//Use thread that calls terminateInstance? First we need to request the AppInstanceID from the AppOrchestrator
 		
-	    InputStream outputVideo = client.target(getLoadBalancerEntry).request().post(Entity.entity(inputVideo,MediaType.APPLICATION_OCTET_STREAM));
+	    InputStream outputVideo = client.target(getLoadBalancerEntry).request().post(Entity.entity(inputVideo, MediaType.APPLICATION_OCTET_STREAM_VALUE), InputStream.class);
 		Assertions.assertNotNull(outputVideo);
 	}
 

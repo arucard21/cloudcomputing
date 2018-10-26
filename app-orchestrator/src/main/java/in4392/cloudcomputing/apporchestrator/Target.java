@@ -4,13 +4,11 @@ import com.amazonaws.services.ec2.model.Instance;
 
 public class Target {
 	private Instance targetInstance;
-	private boolean isFree;
 	private int currentAmountOfRequests;
 
-	public Target(Instance targetInstance, boolean isFree, int currentAmountOfRequests) {
+	public Target(Instance targetInstance, int currentAmountOfRequests) {
 		super();
 		this.targetInstance = targetInstance;
-		this.isFree = isFree;
 		this.setCurrentAmountOfRequests(currentAmountOfRequests);
 	}
 	public Instance getTargetInstance() {
@@ -18,12 +16,6 @@ public class Target {
 	}
 	public void setTargetInstance(Instance targetInstance) {
 		this.targetInstance = targetInstance;
-	}
-	public boolean isFree() {
-		return isFree;
-	}
-	public void setFree(boolean isFree) {
-		this.isFree = isFree;
 	}
 	public int getCurrentAmountOfRequests() {
 		return currentAmountOfRequests;

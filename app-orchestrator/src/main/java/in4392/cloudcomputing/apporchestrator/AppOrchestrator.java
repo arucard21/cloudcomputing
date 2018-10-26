@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +22,7 @@ import org.springframework.http.MediaType;
 
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.util.EC2MetadataUtils;
-
-import in4392.cloudcomputing.apporchestrator.EC2;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 @Named
 public class AppOrchestrator {
@@ -30,6 +30,8 @@ public class AppOrchestrator {
 	private static final int MIN_FREE_INSTANCES = 2;
 	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
 	private static final int MIN_REQUESTS_PER_INSTANCE = 3;
+	private static final String INSTANCE_TYPE_LOAD_BALANCER = "loadBalancer";
+	private static final String INSTANCE_TYPE_APPLICATIONS = "applications";
 	/**
 	 * Wait at least this many iterations before downscaling again
 	 */
@@ -37,12 +39,15 @@ public class AppOrchestrator {
 	private static final String AWS_KEYPAIR_NAME = "accessibleFromAppOrchestrator";
 	
 	private static boolean keepAlive;
+	private static boolean started;
 	private static Instance loadBalancer;
 	private static Map<String, Target> applicationTargets = new HashMap<>();
-	private static Map<String, Instance> applicationInstances = new HashMap<>();
 	private static List<String> toBeDownscaledInstances = new ArrayList<>();
 	private static Instance appOrchestrator;
 	private static int downscaleIterationWaitCounter;
+	private static Map<String, List<String>> appOrchestratorRestoreState = new HashMap<>();
+	private static Map<String, Integer> appOrchestratorRestoreApplicationCounters = new HashMap<>();
+	private static String mainInstanceHostname;
 	
 	
 	private static void deployLoadBalancer() throws IOException, NoSuchAlgorithmException, URISyntaxException {
@@ -70,10 +75,11 @@ public class AppOrchestrator {
 		}
 	}
 	
-	private static void deployApplication() throws IOException, NoSuchAlgorithmException {
+	private static void deployApplication() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		System.out.println("Starting User Application deployment");
 		Instance applicationInstance = EC2.deployDefaultEC2("User Application", AWS_KEYPAIR_NAME, getApplicationUserData());
-		applicationTargets.put(applicationInstance.getInstanceId(), new Target(applicationInstance, true, 0));
+		applicationTargets.put(applicationInstance.getInstanceId(), new Target(applicationInstance, 0));
+		backupApplicationIds();
 		System.out.println("User Application deployed, waiting for instance to run");
 		EC2.waitForInstanceToRun(applicationInstance.getInstanceId());
 		System.out.println("Copying User Application application");
@@ -89,7 +95,7 @@ public class AppOrchestrator {
 		return EC2.getUserData(applicationInstallScript);
 	}
 
-	public static void scaleUpOrDown() throws NoSuchAlgorithmException, IOException {
+	public static void scaleUpOrDown() throws NoSuchAlgorithmException, IOException, URISyntaxException {
 		// ensure that we wait at least the amount of iterations specified in DOWNSCALE_WAIT_ITERATIONS
 		// before we check to downscale again. This should allow the average amount of requests to
 		// stabilize to a new value before we check it again.
@@ -100,7 +106,7 @@ public class AppOrchestrator {
 		int totalRequests = 0;
 		int meanRequests = 0;
 		for (Target target : applicationTargets.values()) {
-			count = target.isFree() ? count + 1 : count;
+			count = target.getCurrentAmountOfRequests() < MAX_REQUESTS_PER_INSTANCE ? count + 1 : count;
 			totalRequests = totalRequests + target.getCurrentAmountOfRequests();
 		}	
 		if (applicationTargets.size() > 0){
@@ -283,39 +289,59 @@ public class AppOrchestrator {
 		return loadBalancer.getPublicDnsName();
 	}
 	
-	public static int incrementRequests(String minId) {
+	public static int incrementRequests(String minId) throws URISyntaxException {
 		applicationTargets.get(minId).incrementCurrentAmountOfRequests();
+		backupApplicationCounter(minId, applicationTargets.get(minId).getCurrentAmountOfRequests());
 		return applicationTargets.get(minId).getCurrentAmountOfRequests();
 	}
 	
-	public static void decrementRequests(String minId) {
+	public static void decrementRequests(String minId) throws URISyntaxException {
 		applicationTargets.get(minId).decrementCurrentAmountofRequests();
-	}
-	
-	public static void setInstanceFreeStatus(String minId, boolean isFree) {
-		applicationTargets.get(minId).setFree(isFree);
+		backupApplicationCounter(minId, applicationTargets.get(minId).getCurrentAmountOfRequests());
 	}
 
 	protected static void startMainLoop() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		keepAlive = true;
 		while(keepAlive) {
+			waitUntilNextIteration();
 			if (EC2.getCredentials() == null) {
 				System.out.println("Waiting for AWS credentials, cannot start yet");
+				continue;
 			}
-			else {
-				if (appOrchestrator == null){
-					appOrchestrator = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
+			if (!started) {
+				System.out.println("Main loop has not been started yet. This can be started through the API");
+				continue;
+			}
+			if (appOrchestrator == null){
+				appOrchestrator = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
+			}
+			if (loadBalancer == null) {
+				String restoreLoadBalancerId = appOrchestratorRestoreState.get(INSTANCE_TYPE_LOAD_BALANCER).get(0);
+				if (restoreLoadBalancerId != null && !restoreLoadBalancerId.isEmpty()) {
+					System.out.println("Restoring load balancer from backup id");
+					loadBalancer = EC2.retrieveEC2InstanceWithId(restoreLoadBalancerId);
 				}
-				if (loadBalancer == null) {
+				else{
 					deployLoadBalancer();
 				}
-				checkLoadBalancerLiveness();
-				checkAppInstancesLiveness();
-				
-				scaleUpOrDown();
-				processDownscaledApplicationInstances();
 			}
-			waitUntilNextIteration();
+			if (applicationTargets == null || applicationTargets.isEmpty()) {
+				List<String> applicationInstanceIds = appOrchestratorRestoreState.get(INSTANCE_TYPE_APPLICATIONS);
+				if (applicationInstanceIds != null && !applicationInstanceIds.isEmpty()) {
+					System.out.println("Restoring applications from backup ids");
+					for (String applicationId : applicationInstanceIds) {
+						Instance application = EC2.retrieveEC2InstanceWithId(applicationId);
+						Integer amountOfRequests = appOrchestratorRestoreApplicationCounters.getOrDefault(applicationId, 0);
+						Target applicationTarget = new Target(application, amountOfRequests);
+						applicationTargets.put(applicationId, applicationTarget);
+					}
+				}
+			}
+			checkLoadBalancerLiveness();
+			checkAppInstancesLiveness();
+			
+			scaleUpOrDown();
+			processDownscaledApplicationInstances();
 		}
 	}
 
@@ -333,13 +359,21 @@ public class AppOrchestrator {
 	public static boolean isAlive() {
 		return keepAlive;
 	}
-
-	public static void restartMainLoop() {
-		keepAlive = true;
+	
+	public static boolean isStarted() {
+		return started;
 	}
 	
-	public static void stopMainLoop() {
+	public static void kill() {
 		keepAlive = false;
+	}
+
+	public static void start() {
+		started = true;
+	}
+	
+	public static void stop() {
+		started = false;
 	}
 
 	/**
@@ -361,11 +395,42 @@ public class AppOrchestrator {
 		return applicationTargets;
 	}
 	
-	public static Map<String, Instance> getApplicationEC2Instances() {
-		applicationInstances = new HashMap<>();
-		for (Target target : applicationTargets.values()) {
-			applicationInstances.put(target.getTargetInstance().getInstanceId(),target.getTargetInstance());
-		}
-		return applicationInstances;
+	public static void setRestoreIdForLoadBalancer(String loadBalancerId) {
+		appOrchestratorRestoreState.put(INSTANCE_TYPE_LOAD_BALANCER, Arrays.asList(loadBalancerId));		
+	}
+
+	public static void setRestoreIdsForApplications(List<String> applicationIds) {
+		appOrchestratorRestoreState.put(INSTANCE_TYPE_APPLICATIONS, applicationIds);
+	}
+
+	public static void setBackupApplicationCounter(String applicationId, int counter) {
+		appOrchestratorRestoreApplicationCounters.put(applicationId, counter);
+	}
+	
+	public static void backupApplicationIds() throws URISyntaxException{
+		URI mainInstanceURI = new URI("http", mainInstanceHostname, null, null);
+		URI backupURI = UriBuilder.fromUri(mainInstanceURI).port(8080)
+				.path("main")
+				.path("backup")
+				.path("applications")
+				.queryParam("applicationIds", new ArrayList<>(applicationTargets.keySet()))
+				.build();
+		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
+	}
+	
+	public static void backupApplicationCounter(String applicationId, int counter) throws URISyntaxException{
+		URI mainInstanceURI = new URI("http", mainInstanceHostname, null, null);
+		URI backupURI = UriBuilder.fromUri(mainInstanceURI).port(8080)
+				.path("main")
+				.path("backup")
+				.path("application-counter")
+				.queryParam("applicationId", applicationId)
+				.queryParam("counter", counter)
+				.build();
+		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
+	}
+
+	public static void setMainInstance(String mainInstanceId) {
+		AppOrchestrator.mainInstanceHostname = EC2.retrieveEC2InstanceWithId(mainInstanceId).getPublicDnsName();
 	}
 }

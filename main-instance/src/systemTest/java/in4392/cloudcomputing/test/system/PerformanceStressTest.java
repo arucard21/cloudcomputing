@@ -1,32 +1,26 @@
 package in4392.cloudcomputing.test.system;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
 public class PerformanceStressTest extends SystemTest{
 	@Test
-	public void measureLatency() {
+	public void measureLatency() throws IOException {
 		URI getLoadBalancerEntry = UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("entry").build();
-		InputStream inputVideo = new FileInputStream("input");
+		InputStream inputVideo = Files.newInputStream(Paths.get("inputVideo.avi"));
 		long startTime = System.currentTimeMillis();
-		
-	    InputStream outputVideo = client.target(getLoadBalancerEntry).request().post(Entity.entity(inputVideo,MediaType.APPLICATION_OCTET_STREAM));
+		InputStream outputVideo = client.target(getLoadBalancerEntry).request().post(Entity.entity(inputVideo, MediaType.APPLICATION_OCTET_STREAM_VALUE), InputStream.class);
 		Assertions.assertNotNull(outputVideo);
 		long endTime = System.currentTimeMillis();
 		long timeElapsed = endTime - startTime;
@@ -35,13 +29,13 @@ public class PerformanceStressTest extends SystemTest{
 	}
 	
 	@Test
-	public void measureThroughput() {
+	public void measureThroughput() throws IOException {
 		URI getLoadBalancerEntry = UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("entry").build();
-		InputStream inputVideo = new FileInputStream("input");
+		InputStream inputVideo = Files.newInputStream(Paths.get("inputVideo.avi"));
 		long inputVideoSize = new File("input").length();
 		long startTime = System.currentTimeMillis();
 		
-	    InputStream outputVideo = client.target(getLoadBalancerEntry).request().post(Entity.entity(inputVideo,MediaType.APPLICATION_OCTET_STREAM));
+	    InputStream outputVideo = client.target(getLoadBalancerEntry).request().post(Entity.entity(inputVideo, MediaType.APPLICATION_OCTET_STREAM_VALUE), InputStream.class);
 		Assertions.assertNotNull(outputVideo);
 		long endTime = System.currentTimeMillis();
 		long timeElapsed = endTime - startTime;
