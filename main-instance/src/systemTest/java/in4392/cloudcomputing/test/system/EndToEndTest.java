@@ -39,9 +39,9 @@ public class EndToEndTest extends SystemTest{
 				.port(8080)
 				.path("load-balancer")
 				.path("entry")
+				.queryParam("failApplication", true)
 				.build();
 		try(InputStream inputVideo = Files.newInputStream(testVideoSmall)){
-			
 			try(InputStream processedVideoInputStream = client
 		    		.target(getLoadBalancerEntry)
 		    		.request()
