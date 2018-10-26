@@ -54,7 +54,10 @@ public class UserApplicationEndpoint {
 			InputStream data, 
 			@DefaultValue("false") 
 			@QueryParam("failApplication")
-			boolean failApplication) throws IOException, InterruptedException {
+			boolean failApplication,
+			@DefaultValue("0") 
+			@QueryParam("delayApplication") 
+			int delayApplication) throws IOException, InterruptedException {
 		if(failApplication) {
 			//terminate this instance and then proceed with conversion to allow this to fail
 			EC2.terminateEC2(EC2MetadataUtils.getInstanceId());
@@ -64,7 +67,11 @@ public class UserApplicationEndpoint {
 				e.printStackTrace();
 			}
 		}
+
 		String outputFormat = ".mkv";
+		if(delayApplication > 0) {
+			Thread.sleep(delayApplication * 1000);
+		}
         File inputFile =  Paths.get(UUID.randomUUID().toString()).toFile();
         File outputFile =  Paths.get(UUID.randomUUID().toString( )+ outputFormat).toFile();
         

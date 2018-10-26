@@ -53,6 +53,11 @@ public class LoadBalancerEndpoint {
 	/**
 	 * Send the request to the correct instance in order to balance the load.
 	 * 
+	 * @param data is the video that needs to be sent to the application
+	 * @param failApplication will cause the application where the video gets sent to terminate 
+	 * before the request is completed (for testing purposes)
+	 * @param delayApplication is the amount of seconds that the application will be delayed from 
+	 * completing the request (for testing purposes)
 	 * @return the response from the instance
 	 * @throws URISyntaxException 
 	 * @throws IOException 
@@ -65,7 +70,10 @@ public class LoadBalancerEndpoint {
 			InputStream data, 
 			@DefaultValue("false") 
 			@QueryParam("failApplication") 
-			boolean failApplication) throws URISyntaxException, IOException {
+			boolean failApplication,
+			@DefaultValue("0") 
+			@QueryParam("delayApplication") 
+			int delayApplication) throws URISyntaxException, IOException {
 		
 		System.out.println("Store input video to a file");
 		File inputFile =  Paths.get(UUID.randomUUID().toString()).toFile();
@@ -98,6 +106,7 @@ public class LoadBalancerEndpoint {
 								 .path("application")
 								 .path("video")
 								 .queryParam("failApplication", failApplication)
+								 .queryParam("delayApplication", delayApplication)
 								 .build())
 						 .request()
 						 .post(
