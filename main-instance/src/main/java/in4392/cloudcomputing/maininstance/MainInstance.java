@@ -232,6 +232,8 @@ public class MainInstance {
 		sendApplicationOrchestratorIdFromRestoreStateToMainInstance();
 		mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, mainInstance.getInstanceId());
 		sendMainInstanceIdToApplicationOrchestratorFromShadow();
+		sendAppOrchestratorRestoreStateToMainInstance();
+		sendAppOrchestratorApplicationCountersToMainInstance();
 		startInstance(mainInstance, API_ROOT_MAIN);
 		System.out.println("Main Instance application started");
 	}
@@ -273,7 +275,7 @@ public class MainInstance {
 		if (appOrchestratorRestoreState.containsKey(INSTANCE_TYPE_APPLICATIONS)) {
 			sendApplicationIdsFromRestoreStateToApplicationOrchestrator();
 		}
-		if (!appOrchestratorRestoreApplicationCounters.isEmpty() && appOrchestratorRestoreApplicationCounters != null) {
+		if (appOrchestratorRestoreApplicationCounters != null && !appOrchestratorRestoreApplicationCounters.isEmpty()) {
 			sendApplicationCountersFromRestoreStateToApplicationOrchestrator();
 		}
 		mainInstanceRestoreState.put(INSTANCE_TYPE_APP_ORCHESTRATOR, appOrchestrator.getInstanceId());
@@ -640,11 +642,12 @@ public class MainInstance {
 	}
 
 	public static void setRestoreIdForLoadBalancer(String loadBalancerId) {
-		appOrchestratorRestoreState.put(INSTANCE_TYPE_LOAD_BALANCER, Arrays.asList(loadBalancerId));		
+		appOrchestratorRestoreState.put(INSTANCE_TYPE_LOAD_BALANCER, Arrays.asList(loadBalancerId));
 	}
 
 	public static void setRestoreIdsForApplications(List<String> applicationIds) {
 		appOrchestratorRestoreState.put(INSTANCE_TYPE_APPLICATIONS, applicationIds);
+		backupApplicationsRestoreState();
 	}
 
 	public static void setRestoreIdForShadow(String shadowId) {
@@ -654,5 +657,77 @@ public class MainInstance {
 
 	public static void setBackupApplicationCounter(String applicationId, int counter) {
 		appOrchestratorRestoreApplicationCounters.put(applicationId, counter);
+		backupAppOrchestratorApplicationCounter(applicationId, counter);
+	}
+
+	private static void backupApplicationsRestoreState() {
+		URI backupURI = UriBuilder.fromPath("")
+				.scheme("http")
+				.host(shadow.getPublicDnsName())
+				.port(8080)
+				.path(API_ROOT_MAIN)
+				.path("backup")
+				.path("applications")
+				.build();
+		ClientBuilder.newClient()
+		.target(backupURI)
+		.queryParam("applicationIds", appOrchestratorRestoreState.get(INSTANCE_TYPE_APPLICATIONS).toArray())
+		.request()
+		.get();
+	}
+
+	private static void backupAppOrchestratorApplicationCounter(String applicationId, int counter) {
+		URI backupURI = UriBuilder.fromPath("")
+				.scheme("http")
+				.host(shadow.getPublicDnsName())
+				.port(8080)
+				.path(API_ROOT_MAIN)
+				.path("backup")
+				.path("applications")
+				.build();
+		ClientBuilder.newClient()
+		.target(backupURI)
+		.queryParam("applicationId", applicationId)
+		.queryParam("counter", counter)
+		.request()
+		.get();
+	}
+	
+	private static void sendAppOrchestratorRestoreStateToMainInstance() {
+		URI backupURI = UriBuilder.fromPath("")
+				.scheme("http")
+				.host(mainInstance.getPublicDnsName())
+				.port(8080)
+				.path(API_ROOT_MAIN)
+				.path("backup")
+				.path("applications")
+				.build();
+		ClientBuilder.newClient()
+		.target(backupURI)
+		.queryParam("applicationIds", appOrchestratorRestoreState.get(INSTANCE_TYPE_APPLICATIONS).toArray())
+		.request()
+		.get();
+	}
+	
+	private static void sendAppOrchestratorApplicationCountersToMainInstance() {
+		URI backupURI = UriBuilder.fromPath("")
+				.scheme("http")
+				.host(mainInstance.getPublicDnsName())
+				.port(8080)
+				.path(API_ROOT_MAIN)
+				.path("backup")
+				.path("applications")
+				.build();
+		Client client = ClientBuilder.newClient();
+		appOrchestratorRestoreApplicationCounters.entrySet()
+		.stream()
+		.forEach(entry -> {
+			client
+			.target(backupURI)
+			.queryParam("applicationId", entry.getKey())
+			.queryParam("counter", entry.getValue())
+			.request()
+			.get();			
+		});
 	}
 }
