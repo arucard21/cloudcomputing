@@ -15,10 +15,7 @@ import java.util.Map.Entry;
 
 import javax.inject.Named;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.UriBuilder;
-
-import org.springframework.http.MediaType;
 
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.util.EC2MetadataUtils;
@@ -436,7 +433,7 @@ public class AppOrchestrator {
 				.path("main")
 				.path("backup")
 				.path("applications")
-				.queryParam("applicationIds", new ArrayList<>(applicationTargets.keySet()))
+				.queryParam("applicationIds", applicationTargets.keySet().toArray())
 				.build();
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
 	}
