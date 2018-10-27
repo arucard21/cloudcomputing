@@ -73,10 +73,18 @@ public class ComponentLivenessTest extends SystemTest{
 		
 		URI applicationOrchestratorURI = new URI("http", applicationOrchestrator.getPublicDnsName(), null, null);
 		
-		URI appOrchestratorDescribeApplicationsURI = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("applications").build();
-		Collection<Instance> applications = client.target(appOrchestratorDescribeApplicationsURI).request().get(new GenericType<Collection<Instance>>(new TypeReference<Collection<Instance>>() {}.getType()));
+		URI appOrchestratorDescribeApplicationsURI = UriBuilder.fromUri(applicationOrchestratorURI).
+				port(8080)
+				.path("application-orchestrator")
+				.path("instances")
+				.path("applications").build();
+		Collection<Instance> applications = client
+				.target(appOrchestratorDescribeApplicationsURI)
+				.request()
+				.get(
+						new GenericType<Collection<Instance>>(
+								new TypeReference<Collection<Instance>>() {}.getType()));
 		Assertions.assertNotNull(applications);
-		Assertions.assertFalse(applications.isEmpty());
 		for (Instance application : applications) {
 			URI applicationURI = new URI("http", application.getPublicDnsName(), null, null);
 			URI applicationHealth = UriBuilder.fromUri(applicationURI).port(8080).path("application").path("health").build();
