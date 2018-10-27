@@ -1,6 +1,7 @@
 package in4392.cloudcomputing.apporchestrator.api;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -22,6 +23,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.model.Instance;
@@ -104,7 +106,7 @@ public class AppOrchestratorEndpoint {
 	@Path("instances/applications")
 	@GET
 	public Collection<Instance> describeApplications() {
-		return AppOrchestrator.getApplicationEC2Targets().values()
+		return AppOrchestrator.getApplicationTargets().values()
 				.stream()
 				.map((target) -> target.getTargetInstance())
 				.collect(Collectors.toList());
@@ -120,11 +122,17 @@ public class AppOrchestratorEndpoint {
 	 */
 	@Path("leastUtilizedInstance")
 	@GET
-	public Response sendLeastLoaded() throws NoSuchAlgorithmException, IOException, URISyntaxException{
+	public URI sendLeastLoaded() throws NoSuchAlgorithmException, IOException, URISyntaxException{
 		String minId = AppOrchestrator.findLeastLoadedAppInstance();
+		String applicationDnsName = AppOrchestrator.getApplicationTargets().get(minId).getTargetInstance().getPublicDnsName();
 		AppOrchestrator.incrementRequests(minId);
-		System.out.println("Sent app instance " + minId + " to load balancer");
-		return Response.ok().entity(minId).build();
+		URI applicationURI = UriBuilder.fromPath("")
+				.scheme("http")
+				.host(applicationDnsName)
+				.port(8080)
+				.build();
+		System.out.println("Sent application URL " + applicationURI + " to load balancer");
+		return applicationURI;
 	}
 	
 	/**
@@ -136,7 +144,7 @@ public class AppOrchestratorEndpoint {
 	@GET
 	public Map<Integer, String> retrieveInstanceUtilizations(){
 		Map<Integer, String> instanceUtilizations = new HashMap<>();
-		for(Target target : AppOrchestrator.getApplicationEC2Targets().values()) {
+		for(Target target : AppOrchestrator.getApplicationTargets().values()) {
 			instanceUtilizations.put(target.getCurrentAmountOfRequests(), target.getTargetInstance().getPublicDnsName());
 		}
 		return instanceUtilizations;
@@ -149,8 +157,8 @@ public class AppOrchestratorEndpoint {
 	 */
 	@Path("completed")
 	@GET
-	public Response notificationForCompletedRequest(@QueryParam("id") String applicationInstanceId) throws URISyntaxException {
-		AppOrchestrator.decrementRequests(applicationInstanceId);
+	public Response notificationForCompletedRequest(@QueryParam("applicationURI") URI applicationURI) throws URISyntaxException {
+		AppOrchestrator.decrementRequests(applicationURI);
 		return Response.ok().build();
 	}
 	

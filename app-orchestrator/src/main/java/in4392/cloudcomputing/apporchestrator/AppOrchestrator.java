@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import javax.inject.Named;
 import javax.ws.rs.client.ClientBuilder;
@@ -292,7 +293,18 @@ public class AppOrchestrator {
 		return applicationTargets.get(minId).getCurrentAmountOfRequests();
 	}
 	
-	public static void decrementRequests(String minId) throws URISyntaxException {
+	public static void decrementRequests(URI applicationURI) throws URISyntaxException {
+		Optional<String> minIdOptional = applicationTargets.entrySet()
+				.stream()
+				.map(entry -> entry.getValue().getTargetInstance())
+				.filter(target -> applicationURI.getHost().equals(target.getPublicDnsName()))
+				.map(target -> target.getInstanceId())
+				.findFirst();
+		if (!minIdOptional.isPresent()) {
+			System.out.println("No application instance available at URI: " + applicationURI);
+			return;
+		}
+		String minId = minIdOptional.get();
 		applicationTargets.get(minId).decrementCurrentAmountofRequests();
 		backupApplicationCounter(minId, applicationTargets.get(minId).getCurrentAmountOfRequests());
 	}
@@ -400,7 +412,7 @@ public class AppOrchestrator {
 		return loadBalancer;
 	}
 
-	public static Map<String, Target> getApplicationEC2Targets() {
+	public static Map<String, Target> getApplicationTargets() {
 		return applicationTargets;
 	}
 	

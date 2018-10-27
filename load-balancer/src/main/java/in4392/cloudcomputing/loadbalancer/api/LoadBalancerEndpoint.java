@@ -83,7 +83,7 @@ public class LoadBalancerEndpoint {
         Files.copy(data, inputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         
 		System.out.println("Requesting application instance from AppOrchestrator");
-		String instanceID = ClientBuilder.newClient()
+		URI applicationURI = ClientBuilder.newClient()
 				.register(JacksonJsonProvider.class)
 				.target(
 						UriBuilder.fromUri(appOrchestratorURI)
@@ -92,10 +92,9 @@ public class LoadBalancerEndpoint {
 						.path("leastUtilizedInstance")
 						.build())
 				.request()
-				.get(String.class);
-		String instanceDN = EC2.retrieveEC2InstanceWithId(instanceID).getPublicDnsName();
-		URI instanceURI = new URI("http", instanceDN , "", "");
-		System.out.println("Redirecting video to application server " + instanceID + "at " + instanceURI.toString());
+				.get(URI.class);
+		
+		System.out.println("Redirecting video to application server at " + applicationURI.toString());
 		
 		InputStream video = null ;
 		boolean waitingForConvertedVideo = true;
@@ -104,8 +103,7 @@ public class LoadBalancerEndpoint {
 			try {
 				 video = ClientBuilder.newClient().
 						 target(
-								 UriBuilder.fromUri(instanceURI)
-								 .port(8080)
+								 UriBuilder.fromUri(applicationURI)
 								 .path("application")
 								 .path("video")
 								 .queryParam("failApplication", failApplication)
@@ -121,7 +119,7 @@ public class LoadBalancerEndpoint {
 				 waitingForConvertedVideo = false;
 			} catch (Exception e) {
 				System.out.println("Decreasing request counter in app orchestrator since the request to this application instance failed");
-				decrementRequestsForApplication(instanceID);
+				decrementRequestsForApplication(applicationURI);
 				System.out.println("Retrying connection after sleeping for 20 seconds");
 				try {
 					Thread.sleep(RETRY_WAIT_TIME);
@@ -130,7 +128,7 @@ public class LoadBalancerEndpoint {
 				}
 				attempts++;
 				System.out.println("Requesting new application instance from AppOrchestrator");
-				instanceID = ClientBuilder.newClient()
+				applicationURI = ClientBuilder.newClient()
 						.register(JacksonJsonProvider.class)
 						.target(
 								UriBuilder.fromUri(appOrchestratorURI)
@@ -139,12 +137,12 @@ public class LoadBalancerEndpoint {
 								.path("leastUtilizedInstance")
 								.build())
 						.request()
-						.get(String.class);
+						.get(URI.class);
 				System.out.println("Retrying request");
 			}
 		}
 		System.out.println("Decreasing request counter in app orchestrator");
-		decrementRequestsForApplication(instanceID);
+		decrementRequestsForApplication(applicationURI);
 		
 		System.out.println("Deleting original input video");
 		inputFile.delete();
@@ -153,12 +151,12 @@ public class LoadBalancerEndpoint {
 		return video;
 	}
 
-	private void decrementRequestsForApplication(String instanceID) {
+	private void decrementRequestsForApplication(URI applicationURI) {
 		ClientBuilder.newClient()
 		.target(UriBuilder.fromUri(appOrchestratorURI).port(8080)
 				.path("application-orchestrator")
 				.path("completed")
-				.queryParam("id", instanceID)
+				.queryParam("applicationURI", applicationURI)
 				.build())
 		.request()
 		.get();
