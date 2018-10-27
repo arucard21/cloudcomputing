@@ -6,7 +6,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -21,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import in4392.cloudcomputing.maininstance.InstanceMetrics;
 
@@ -77,7 +78,7 @@ public class PerformanceStressTest extends SystemTest{
 		totalDuration = totalDuration + (endTime - startTime);
 		
 		Duration requestDuration = Duration.ofMillis(totalDuration);
-		long throughput = totalInputVideoSize/totalDuration;
+		double throughput = totalInputVideoSize/((double)totalDuration/1000);
 		System.err.printf("Execution time (in ISO8601 format) for %d requests: %s\n", amountOfRequests, requestDuration.toString());
 		System.err.printf("Throughput for %d requests is : %s Bytes per second\n", amountOfRequests, throughput);
 		URI mainInstanceMetricsURI = UriBuilder.fromUri(mainInstanceURI)
@@ -89,7 +90,9 @@ public class PerformanceStressTest extends SystemTest{
 				.request()
 				.get(new GenericType<Map<String, InstanceMetrics>>(
 						new TypeReference<Map<String, InstanceMetrics>>() {}.getType()));
-		System.err.println(Arrays.toString(metrics.entrySet().toArray()));
+		ObjectMapper jsonMapper = new ObjectMapper();
+		jsonMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		System.err.println(jsonMapper.writeValueAsString(metrics));
 	}
 	
 	@Test
