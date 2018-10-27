@@ -85,6 +85,7 @@ public class ComponentLivenessTest extends SystemTest{
 						new GenericType<Collection<Instance>>(
 								new TypeReference<Collection<Instance>>() {}.getType()));
 		Assertions.assertNotNull(applications);
+		Assertions.assertFalse(applications.isEmpty());
 		for (Instance application : applications) {
 			URI applicationURI = new URI("http", application.getPublicDnsName(), null, null);
 			URI applicationHealth = UriBuilder.fromUri(applicationURI).port(8080).path("application").path("health").build();
