@@ -119,7 +119,8 @@ public class AppOrchestrator {
 			deployApplication();
 		}
 		else {
-			if (toBeDownscaledInstances.isEmpty() && 
+			if (toBeDownscaledInstances.isEmpty() &&
+					applicationTargets.size() > 1 && 
 					meanRequests < MIN_REQUESTS_PER_INSTANCE) {
 				/*
 				 * downscale by marking the least used application so it is no longer used
