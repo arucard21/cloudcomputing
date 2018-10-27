@@ -393,7 +393,6 @@ public class MainInstance {
 
 	public static void configureThisInstanceAsShadowWithProvidedInstanceAsMain(String mainInstanceId) {
 		MainInstance.isShadow = true;
-		System.out.println(mainInstanceId);
 		mainInstance = EC2.retrieveEC2InstanceWithId(mainInstanceId);
 		shadow = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
 		mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, mainInstanceId);
@@ -594,8 +593,6 @@ public class MainInstance {
 		Dimension instanceDimension = new Dimension();
 		instanceDimension.setName("InstanceId");
 		instanceDimension.setValue(instance.getInstanceId());
-		// TODO Include other metrics besides cloudwatch
-		// TODO Store/present values in useful way for the rest of the system
 		for (String metricName : metricNames) {
 			additionalMetrics.put(metricName, getSingleMetric(instanceDimension, metricName));
 		}
