@@ -39,7 +39,6 @@ public class AppOrchestrator {
 	private static Instance loadBalancer;
 	private static Map<String, Target> applicationTargets = new HashMap<>();
 	private static List<String> toBeDownscaledInstances = new ArrayList<>();
-	private static List<String> downscaledInstances = new ArrayList<>();
 	private static Instance appOrchestrator;
 	private static int downscaleIterationWaitCounter;
 	private static Map<String, List<String>> appOrchestratorRestoreState = new HashMap<>();
@@ -352,6 +351,7 @@ public class AppOrchestrator {
 	}
 
 	private static void processDownscaledApplicationInstances() {
+		List<String> downscaledInstances = new ArrayList<>();
 		for (String instanceId: toBeDownscaledInstances) {
 			if (applicationTargets.get(instanceId).getCurrentAmountOfRequests() == 0) {
 				EC2.terminateEC2(instanceId);
