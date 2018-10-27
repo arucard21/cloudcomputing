@@ -27,6 +27,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+
 
 @Named
 @Path("load-balancer")
@@ -82,6 +84,7 @@ public class LoadBalancerEndpoint {
         
 		System.out.println("Requesting application instance from AppOrchestrator");
 		String instanceID = ClientBuilder.newClient()
+				.register(JacksonJsonProvider.class)
 				.target(
 						UriBuilder.fromUri(appOrchestratorURI)
 						.port(8080)
@@ -127,8 +130,9 @@ public class LoadBalancerEndpoint {
 				}
 				attempts++;
 				System.out.println("Requesting new application instance from AppOrchestrator");
-				instanceID = ClientBuilder.newClient().
-						target(
+				instanceID = ClientBuilder.newClient()
+						.register(JacksonJsonProvider.class)
+						.target(
 								UriBuilder.fromUri(appOrchestratorURI)
 								.port(8080)
 								.path("application-orchestrator")
@@ -168,9 +172,8 @@ public class LoadBalancerEndpoint {
 	}
 	
 	@Path("appOrchestratorURI")
-	@POST
-	@Consumes(MediaType.TEXT_PLAIN)
-	public Response setAppOrchestratorURI(String uri) throws URISyntaxException {
+	@GET
+	public Response setAppOrchestratorURI(@QueryParam("appOrchestratorURI") String uri) throws URISyntaxException {
 		appOrchestratorURI = new URI("http",uri,"","");
 		System.out.println("AppOrchestrator is at " + appOrchestratorURI);
 		return Response.ok().build();

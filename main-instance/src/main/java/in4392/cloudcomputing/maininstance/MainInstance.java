@@ -230,6 +230,8 @@ public class MainInstance {
 		uploadCredentials(mainInstance, API_ROOT_MAIN);
 		sendShadowIdFromRestoreStateToMainInstance();
 		sendApplicationOrchestratorIdFromRestoreStateToMainInstance();
+		mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, mainInstance.getInstanceId());
+		sendMainInstanceIdToApplicationOrchestrator();
 		startInstance(mainInstance, API_ROOT_MAIN);
 		System.out.println("Main Instance application started");
 	}
@@ -246,9 +248,11 @@ public class MainInstance {
 		waitForApplicationToStart();
 		uploadCredentials(shadow, API_ROOT_MAIN);
 		configureProvidedInstanceAsShadow(shadow);
-		sendApplicationOrchestratorIdFromRestoreStateToMainInstance();
-		sendMainInstanceIdToApplicationOrchestrator();
-		startInstance(mainInstance, API_ROOT_MAIN);
+		//Such if conditions were changed because we thought there was an issue here with the previous ones, but it may not be the case
+		if (mainInstanceRestoreState.containsKey(INSTANCE_TYPE_APP_ORCHESTRATOR)) {
+			sendApplicationOrchestratorIdFromRestoreStateToShadow();
+		}
+		startInstance(shadow, API_ROOT_MAIN);
 		System.out.println("Shadow application started");
 	}
 
@@ -263,9 +267,19 @@ public class MainInstance {
 		EC2.startDeployedApplication(appOrchestrator, "app-orchestrator");
 		waitForApplicationToStart();
 		uploadCredentials(appOrchestrator, "application-orchestrator");
-		sendLoadBalancerIdFromRestoreStateToApplicationOrchestrator();
-		sendApplicationIdsFromRestoreStateToApplicationOrchestrator();
-		sendApplicationCountersFromRestoreStateToApplicationOrchestrator();
+		if (appOrchestratorRestoreState.containsKey(INSTANCE_TYPE_LOAD_BALANCER)) {
+			sendLoadBalancerIdFromRestoreStateToApplicationOrchestrator();
+		}
+		if (appOrchestratorRestoreState.containsKey(INSTANCE_TYPE_APPLICATIONS)) {
+			sendApplicationIdsFromRestoreStateToApplicationOrchestrator();
+		}
+		if (!appOrchestratorRestoreApplicationCounters.isEmpty() && appOrchestratorRestoreApplicationCounters != null) {
+			sendApplicationCountersFromRestoreStateToApplicationOrchestrator();
+		}
+		mainInstanceRestoreState.put(INSTANCE_TYPE_APP_ORCHESTRATOR, appOrchestrator.getInstanceId());
+		sendMainInstanceIdToApplicationOrchestrator();
+		setRestoreIdForAppOrchestrator(appOrchestrator.getInstanceId());
+		sendApplicationOrchestratorIdFromRestoreStateToShadow();
 		startInstance(appOrchestrator, API_ROOT_APPLICATION_ORCHESTRATOR);
 		System.out.println("App Orchestrator started");
 	}
@@ -273,6 +287,7 @@ public class MainInstance {
 	private static void updateEC2InstanceForMainInstance() {
 		if (mainInstance == null) {
 			mainInstance = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
+			mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, mainInstance.getInstanceId());
 			return;
 		}
 		mainInstance = EC2.retrieveEC2InstanceWithId(mainInstance.getInstanceId());
@@ -420,6 +435,17 @@ public class MainInstance {
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
 	}
 	
+	private static void sendApplicationOrchestratorIdFromRestoreStateToShadow() throws URISyntaxException {
+		URI shadowURI = new URI("http", shadow.getPublicDnsName(), null, null);
+		URI backupURI = UriBuilder.fromUri(shadowURI).port(8080)
+				.path(API_ROOT_MAIN)
+				.path("backup")
+				.path("application-orchestrator")
+				.queryParam("appOrchestratorId", mainInstanceRestoreState.get(INSTANCE_TYPE_APP_ORCHESTRATOR))
+				.build();
+		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
+	}
+	
 	private static void sendApplicationOrchestratorIdFromRestoreStateToMainInstance() throws URISyntaxException {
 		URI mainInstanceURI = new URI("http", mainInstance.getPublicDnsName(), null, null);
 		URI backupURI = UriBuilder.fromUri(mainInstanceURI).port(8080)
@@ -507,6 +533,16 @@ public class MainInstance {
 		DescribeInstancesRequest request = new DescribeInstancesRequest()
 				.withInstanceIds(getInstanceIDsFromAppOrchestrator())
 				.withInstanceIds(shadow.getInstanceId(), appOrchestrator.getInstanceId());
+		
+		// This part covers the Monitoring subsection of what resources are used in the
+		// system.	
+		// TODO Usage of resources by the system can be the total of the aforementioned
+		// ones or the description of AWS resources used(basically everything present in
+		// the EC2 dashboard).
+		// TODO The number of users can be requested by the Load Balancer.
+		// TODO The performance part could be the time the system takes to fully handle
+		// a user request, measured by the Load Balancer again
+
 		while (true) {
 			DescribeInstancesResult response = EC2.getClient().describeInstances(request);
 
@@ -524,7 +560,7 @@ public class MainInstance {
 			}
 		}
 	}
-
+	
 	public static Map<String, InstanceMetrics> getMetricsForInstances() {
 		return metricsForInstances;
 	}
@@ -554,6 +590,8 @@ public class MainInstance {
 		Dimension instanceDimension = new Dimension();
 		instanceDimension.setName("InstanceId");
 		instanceDimension.setValue(instance.getInstanceId());
+		// TODO Include other metrics besides cloudwatch
+		// TODO Store/present values in useful way for the rest of the system
 		for (String metricName : metricNames) {
 			additionalMetrics.put(metricName, getSingleMetric(instanceDimension, metricName));
 		}

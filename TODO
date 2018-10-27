@@ -1,0 +1,3 @@
+1. Main Instance recovery needs to be fully tested. Has a last moment fix that will probably make it work.
+2. AppOrchestrator recovers ApplicationIds in a weird way, as one String for all instances. Need to figure out why.
+3. There seems to be a problem with the AppOrchestrator when the Load Balancer receives more than two requests in the same time period. No additional instance id is returned to the Load Balancer and the subsequent video conversion request fails.

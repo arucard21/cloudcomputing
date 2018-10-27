@@ -42,6 +42,7 @@ public class AppOrchestrator {
 	private static Instance loadBalancer;
 	private static Map<String, Target> applicationTargets = new HashMap<>();
 	private static List<String> toBeDownscaledInstances = new ArrayList<>();
+	private static List<String> downscaledInstances = new ArrayList<>();
 	private static Instance appOrchestrator;
 	private static int downscaleIterationWaitCounter;
 	private static Map<String, List<String>> appOrchestratorRestoreState = new HashMap<>();
@@ -52,6 +53,7 @@ public class AppOrchestrator {
 	private static void deployLoadBalancer() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		System.out.println("Starting Load Balancer deployment");
 		loadBalancer = EC2.deployDefaultEC2("Load Balancer", AWS_KEYPAIR_NAME);
+		backupLoadBalancer();
 		System.out.println("Load Balancer deployed, waiting for instance to run");
 		EC2.waitForInstanceToRun(loadBalancer.getInstanceId());
 		System.out.println("Copying Load Balancer application");
@@ -63,7 +65,7 @@ public class AppOrchestrator {
 		System.out.println(UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("appOrchestratorURI").build());
 		System.out.println(appOrchestrator.getPublicDnsName());
 		waitForApplicationToStart();
-		ClientBuilder.newClient().target(UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("appOrchestratorURI").build()).request().post(Entity.entity(appOrchestrator.getPublicDnsName(),MediaType.TEXT_PLAIN_VALUE));
+		sendAppOrchestratorURIToLoadBalancer();
 	}
 	
 	private static void waitForApplicationToStart() {
@@ -103,7 +105,8 @@ public class AppOrchestrator {
 		}
 		int count = 0;
 		int totalRequests = 0;
-		int meanRequests = 0;
+		//Needed to deploy one application instance
+		int meanRequests = MAX_REQUESTS_PER_INSTANCE+1;
 		for (Target target : applicationTargets.values()) {
 			count = target.getCurrentAmountOfRequests() < MAX_REQUESTS_PER_INSTANCE ? count + 1 : count;
 			totalRequests = totalRequests + target.getCurrentAmountOfRequests();
@@ -216,7 +219,7 @@ public class AppOrchestrator {
 			URI appInstanceURI = new URI("http", appInstance.getPublicDnsName(), null, null);
 			URI appInstanceHealth = UriBuilder.fromUri(appInstanceURI).port(8080).path("application").path("health").build();
 			int httpStatus = ClientBuilder.newClient().target(appInstanceHealth).request().get().getStatus();
-			return loadBalancer.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
+			return appInstance.getState().getCode() == EC2.INSTANCE_RUNNING && httpStatus == 204;
 		}catch(Exception e) {
 			System.out.println("AppInstance not Alive");
 			return false;
@@ -314,24 +317,32 @@ public class AppOrchestrator {
 				appOrchestrator = EC2.retrieveEC2InstanceWithId(EC2MetadataUtils.getInstanceId());
 			}
 			if (loadBalancer == null) {
-				String restoreLoadBalancerId = appOrchestratorRestoreState.get(INSTANCE_TYPE_LOAD_BALANCER).get(0);
-				if (restoreLoadBalancerId != null && !restoreLoadBalancerId.isEmpty()) {
+				if (appOrchestratorRestoreState.containsKey(INSTANCE_TYPE_LOAD_BALANCER)) {
+					List<String> restoreLoadBalancer = appOrchestratorRestoreState.get(INSTANCE_TYPE_LOAD_BALANCER);
 					System.out.println("Restoring load balancer from backup id");
-					loadBalancer = EC2.retrieveEC2InstanceWithId(restoreLoadBalancerId);
+					loadBalancer = EC2.retrieveEC2InstanceWithId(restoreLoadBalancer.get(0));
+					sendAppOrchestratorURIToLoadBalancer();
 				}
 				else{
 					deployLoadBalancer();
 				}
 			}
 			if (applicationTargets == null || applicationTargets.isEmpty()) {
-				List<String> applicationInstanceIds = appOrchestratorRestoreState.get(INSTANCE_TYPE_APPLICATIONS);
-				if (applicationInstanceIds != null && !applicationInstanceIds.isEmpty()) {
+				if (appOrchestratorRestoreState.containsKey(INSTANCE_TYPE_APPLICATIONS)) {
+					List<String> applicationInstanceIds = appOrchestratorRestoreState.get(INSTANCE_TYPE_APPLICATIONS);
 					System.out.println("Restoring applications from backup ids");
-					for (String applicationId : applicationInstanceIds) {
-						Instance application = EC2.retrieveEC2InstanceWithId(applicationId);
-						Integer amountOfRequests = appOrchestratorRestoreApplicationCounters.getOrDefault(applicationId, 0);
-						Target applicationTarget = new Target(application, amountOfRequests);
-						applicationTargets.put(applicationId, applicationTarget);
+					for (String applicationIds : applicationInstanceIds) {
+						// Here you get a String of all instanceIds. Can't find why that happens
+						String[] sanitizedApplicationIds = applicationIds.replace("[", "").replace("]", "").split(",");
+						System.out.println(sanitizedApplicationIds);
+						for(String applicationId: sanitizedApplicationIds) {
+							System.out.println(applicationId);
+							String fixedAppId = applicationId.replace(" ","");
+							Instance application = EC2.retrieveEC2InstanceWithId(fixedAppId);
+							Integer amountOfRequests = appOrchestratorRestoreApplicationCounters.getOrDefault(applicationId, 0);
+							Target applicationTarget = new Target(application, amountOfRequests);
+							applicationTargets.put(applicationId, applicationTarget);
+						}
 					}
 				}
 			}
@@ -347,10 +358,13 @@ public class AppOrchestrator {
 		for (String instanceId: toBeDownscaledInstances) {
 			if (applicationTargets.get(instanceId).getCurrentAmountOfRequests() == 0) {
 				EC2.terminateEC2(instanceId);
-				toBeDownscaledInstances.remove(instanceId);
+				downscaledInstances.add(instanceId);
 				applicationTargets.remove(instanceId);
 			}
 		}
+		// Avoid ConcurrentModificiation Exception
+		toBeDownscaledInstances.removeAll(downscaledInstances);
+		downscaledInstances = new ArrayList<>();
 	}
 	
 	
@@ -405,6 +419,17 @@ public class AppOrchestrator {
 		appOrchestratorRestoreApplicationCounters.put(applicationId, counter);
 	}
 	
+	public static void backupLoadBalancer() throws URISyntaxException{
+		URI mainInstanceURI = new URI("http", mainInstanceHostname, null, null);
+		URI backupURI = UriBuilder.fromUri(mainInstanceURI).port(8080)
+				.path("main")
+				.path("backup")
+				.path("load-balancer")
+				.queryParam("loadBalancerId", loadBalancer.getInstanceId())
+				.build();
+		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
+	}
+	
 	public static void backupApplicationIds() throws URISyntaxException{
 		URI mainInstanceURI = new URI("http", mainInstanceHostname, null, null);
 		URI backupURI = UriBuilder.fromUri(mainInstanceURI).port(8080)
@@ -424,6 +449,16 @@ public class AppOrchestrator {
 				.path("application-counter")
 				.queryParam("applicationId", applicationId)
 				.queryParam("counter", counter)
+				.build();
+		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
+	}
+	
+	public static void sendAppOrchestratorURIToLoadBalancer() throws URISyntaxException{
+		URI loadBalancerURI = new URI("http", loadBalancer.getPublicDnsName(), null, null);
+		URI backupURI = UriBuilder.fromUri(loadBalancerURI).port(8080)
+				.path("load-balancer")
+				.path("appOrchestratorURI")
+				.queryParam("appOrchestratorURI", appOrchestrator.getPublicDnsName())
 				.build();
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
 	}
