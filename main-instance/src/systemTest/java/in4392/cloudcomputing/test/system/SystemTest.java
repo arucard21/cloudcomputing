@@ -33,7 +33,7 @@ public abstract class SystemTest {
 	URI loadBalancerURI;
 	Collection<Instance> applications;
 	
-	Path testVideoSmall = Paths.get("sintel_trailer-480p.mp4");
+	Path testVideoSmall;
 	
 	@BeforeEach
 	public void initializeTestVariables() throws URISyntaxException {
@@ -43,6 +43,7 @@ public abstract class SystemTest {
 		getApplicationOrchestratorURIFromMainInstance();
 		getLoadBalancerURIFromAppOrchestrator();
 		getApplicationURIsFromAppOrchestrator();
+		testVideoSmall = Paths.get(ClassLoader.getSystemResource("sintel_trailer-480p.mp4").toURI());
 	}
 
 	private void getApplicationURIsFromAppOrchestrator() {
