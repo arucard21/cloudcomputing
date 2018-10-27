@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Named;
@@ -223,6 +224,24 @@ public class AppOrchestratorEndpoint {
 	@GET
 	public Response backupApplicationCounter(@QueryParam("applicationId") String applicationId, @QueryParam("counter") int counter) {
 		AppOrchestrator.setBackupApplicationCounter(applicationId, counter);
+		return Response.ok().build();
+	}
+	
+	@Path("terminateApplication")
+	@GET
+	public Response terminateApplication(String hostname) {
+		Optional<String> applicationIdOptional = AppOrchestrator.getApplicationTargets().entrySet()
+				.stream()
+				.map(entry -> entry.getValue().getTargetInstance())
+				.filter(target -> hostname.equals(target.getPublicDnsName()))
+				.map(target -> target.getInstanceId())
+				.findFirst();
+		if (!applicationIdOptional.isPresent()) {
+			System.out.println("No application instance available at host: " + hostname);
+		}
+		else{
+			EC2.terminateEC2(applicationIdOptional.get());
+		}
 		return Response.ok().build();
 	}
 }

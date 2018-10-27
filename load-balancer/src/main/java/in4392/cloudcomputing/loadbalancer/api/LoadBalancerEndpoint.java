@@ -101,16 +101,29 @@ public class LoadBalancerEndpoint {
 		int attempts = 0;
 		while (waitingForConvertedVideo && attempts < 10) { 
 			try {
-				 video = ClientBuilder.newClient().
-						 target(
-								 UriBuilder.fromUri(applicationURI)
-								 .path("application")
-								 .path("video")
-								 .queryParam("failApplication", failApplication)
-								 .queryParam("delayApplication", delayApplication)
-								 .build())
-						 .request()
-						 .post(
+				if (attempts == 0 && failApplication) {
+					ClientBuilder.newClient()
+					.register(JacksonJsonProvider.class)
+					.target(
+							UriBuilder.fromUri(appOrchestratorURI)
+							.port(8080)
+							.path("application-orchestrator")
+							.path("terminateApplication")
+							.queryParam("applicationDnsName", applicationURI.getHost())
+							.build())
+					.request()
+					.get();
+				}
+				video = ClientBuilder.newClient().
+						target(
+								UriBuilder.fromUri(applicationURI)
+								.path("application")
+								.path("video")
+								.queryParam("failApplication", failApplication)
+								.queryParam("delayApplication", delayApplication)
+								.build())
+						.request()
+						.post(
 								 Entity.entity(
 										 Files.newInputStream(inputFile.toPath()), 
 										 MediaType.APPLICATION_OCTET_STREAM),

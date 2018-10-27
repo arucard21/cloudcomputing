@@ -19,10 +19,10 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import com.amazonaws.util.EC2MetadataUtils;
+import javax.ws.rs.core.UriInfo;
 
 @Named
 @Path("application")
@@ -50,23 +50,12 @@ public class UserApplicationEndpoint {
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	public File convert(
+			@Context
+			UriInfo uriInfo,
 			InputStream data, 
-			@DefaultValue("false") 
-			@QueryParam("failApplication")
-			boolean failApplication,
 			@DefaultValue("0") 
 			@QueryParam("delayApplication") 
 			int delayApplication) throws IOException, InterruptedException {
-		if(failApplication) {
-			//terminate this instance and then proceed with conversion to allow this to fail
-			EC2.terminateEC2(EC2MetadataUtils.getInstanceId());
-			try {
-				Thread.sleep(10 * 1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-
 		String outputFormat = ".mkv";
 		if(delayApplication > 0) {
 			Thread.sleep(delayApplication * 1000);
@@ -105,5 +94,4 @@ public class UserApplicationEndpoint {
 //		}
 		return outputFile;
 	}
-	
 }
