@@ -534,14 +534,7 @@ public class MainInstance {
 				.withInstanceIds(getInstanceIDsFromAppOrchestrator())
 				.withInstanceIds(shadow.getInstanceId(), appOrchestrator.getInstanceId());
 		
-		// This part covers the Monitoring subsection of what resources are used in the
-		// system.	
-		// TODO Usage of resources by the system can be the total of the aforementioned
-		// ones or the description of AWS resources used(basically everything present in
-		// the EC2 dashboard).
-		// TODO The number of users can be requested by the Load Balancer.
-		// TODO The performance part could be the time the system takes to fully handle
-		// a user request, measured by the Load Balancer again
+		// This part covers the Monitoring subsection of what resources are used in the system.
 
 		while (true) {
 			DescribeInstancesResult response = EC2.getClient().describeInstances(request);
