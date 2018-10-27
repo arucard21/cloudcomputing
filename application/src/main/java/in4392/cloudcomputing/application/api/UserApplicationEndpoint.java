@@ -1,6 +1,7 @@
 package in4392.cloudcomputing.application.api;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +50,7 @@ public class UserApplicationEndpoint {
 	@POST
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	public File convert(
+	public InputStream convert(
 			@Context
 			UriInfo uriInfo,
 			InputStream data, 
@@ -64,13 +65,16 @@ public class UserApplicationEndpoint {
         File outputFile =  Paths.get(UUID.randomUUID().toString( )+ outputFormat).toFile();
         
         Files.copy(data, inputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        outputFile.createNewFile();
 		
         String cmd = String.format(
-        		"ffmpeg -i %s -codec:v libx264 -codec:a copy %s", 
-        		inputFile.getAbsolutePath(), 
-        		outputFile.getAbsolutePath());
+        		"ffmpeg -y -i %s -codec:v libx264 -codec:a copy %s", 
+        		inputFile.getName(), 
+        		outputFile.getName());
+        File workingDirectory = inputFile.getAbsoluteFile().toPath().getParent().toFile();
      	System.out.println("Executing command: " + cmd);
-        Process p = Runtime.getRuntime().exec(cmd);
+     	System.out.println("\nFrom working directory: " + workingDirectory);
+        Process p = Runtime.getRuntime().exec(cmd, null, workingDirectory);
         int result = p.waitFor();
         
         System.out.println("Process exit code: " + result);
@@ -88,10 +92,14 @@ public class UserApplicationEndpoint {
 	    else { 
 	    	System.out.println("Failed to delete the input file"); 
 	    }
-//		try(ByteArrayInputStream inMemOutputFile = new ByteArrayInputStream(Files.readAllBytes(outputFile.toPath()))){			
-//			outputFile.delete();
-//			return inMemOutputFile;
-//		}
-		return outputFile;
+		try(ByteArrayInputStream inMemOutputFile = new ByteArrayInputStream(Files.readAllBytes(outputFile.toPath()))){
+			if(outputFile.delete()) {
+				System.out.println("Output file deleted successfully");
+			}
+			else {
+				System.out.println("Failed to delete output file");
+			}
+			return inMemOutputFile;
+		}
 	}
 }
