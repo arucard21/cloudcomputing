@@ -149,5 +149,11 @@ task deployApplication(){
 						"--data-binary", /{"accessKey": "${aws_access_key_id}", "secretKey": "${aws_secret_access_key}"}/, 
 						"${awsInstanceURL}:8080/main/credentials"
 		}
+		exec {
+			println "Starting main instance functionality"
+			commandLine "curl", 
+						"--silent", 
+						"${awsInstanceURL}:8080/main/start"
+		}
 	}
 }
