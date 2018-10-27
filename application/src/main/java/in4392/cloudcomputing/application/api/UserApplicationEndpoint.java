@@ -1,7 +1,6 @@
 package in4392.cloudcomputing.application.api;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +49,7 @@ public class UserApplicationEndpoint {
 	@POST
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	public InputStream convert(
+	public File convert(
 			InputStream data, 
 			@DefaultValue("false") 
 			@QueryParam("failApplication")
@@ -77,7 +76,6 @@ public class UserApplicationEndpoint {
         
         Files.copy(data, inputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		
-		
         String cmd = String.format(
         		"ffmpeg -i %s -codec:v libx264 -codec:a copy %s", 
         		inputFile.getAbsolutePath(), 
@@ -101,9 +99,11 @@ public class UserApplicationEndpoint {
 	    else { 
 	    	System.out.println("Failed to delete the input file"); 
 	    }
-		ByteArrayInputStream inMemOutputFile = new ByteArrayInputStream(Files.readAllBytes(outputFile.toPath()));
-		outputFile.delete();
-		return inMemOutputFile;
+//		try(ByteArrayInputStream inMemOutputFile = new ByteArrayInputStream(Files.readAllBytes(outputFile.toPath()))){			
+//			outputFile.delete();
+//			return inMemOutputFile;
+//		}
+		return outputFile;
 	}
 	
 }
