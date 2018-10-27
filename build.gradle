@@ -8,6 +8,10 @@ plugins {
 	id "jp.classmethod.aws.ec2" version "0.38"
 }
 
+repositories {
+    mavenCentral()
+}
+
 subprojects{
 	apply plugin: "java"
 	apply plugin: "eclipse"
