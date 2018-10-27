@@ -99,7 +99,7 @@ public class LoadBalancerEndpoint {
 		InputStream video = null ;
 		boolean waitingForConvertedVideo = true;
 		int attempts = 0;
-		while (waitingForConvertedVideo && attempts < 10) { 
+		while (waitingForConvertedVideo && attempts < 10) {
 			try {
 				if (attempts == 0 && failApplication) {
 					ClientBuilder.newClient()
@@ -153,6 +153,9 @@ public class LoadBalancerEndpoint {
 						.get(URI.class);
 				System.out.println("Retrying request");
 			}
+		}
+		if (attempts == 10) {
+			System.out.println("Could not retry the request, stopped after "+attempts+" retries");
 		}
 		System.out.println("Decreasing request counter in app orchestrator");
 		decrementRequestsForApplication(applicationURI);
