@@ -458,17 +458,15 @@ public class MainInstance {
 	
 	private static void sendMainInstanceIdToApplicationOrchestratorFromShadow() throws URISyntaxException {
         URI appOrchestratorURI = new URI("http", EC2.retrieveEC2InstanceWithId(mainInstanceRestoreState.get(INSTANCE_TYPE_APP_ORCHESTRATOR)).getPublicDnsName(), null, null);
-        URI backupURI = UriBuilder.fromUri(appOrchestratorURI).port(8080)
-                        .path(API_ROOT_APPLICATION_ORCHESTRATOR)
-                        .path("backup")
-                        .path("main-instance")
-                        .queryParam("mainInstanceId", mainInstanceRestoreState.get(INSTANCE_TYPE_MAIN))
-                        .build();
-        ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
+        sendMainInstanceIdToApplicationOrchestrator(appOrchestratorURI);
 	}
 	
 	private static void sendMainInstanceIdToApplicationOrchestrator() throws URISyntaxException {
 		URI appOrchestratorURI = new URI("http", appOrchestrator.getPublicDnsName(), null, null);
+		sendMainInstanceIdToApplicationOrchestrator(appOrchestratorURI);
+	}
+
+	private static void sendMainInstanceIdToApplicationOrchestrator(URI appOrchestratorURI) throws URISyntaxException {
 		URI backupURI = UriBuilder.fromUri(appOrchestratorURI).port(8080)
 				.path(API_ROOT_APPLICATION_ORCHESTRATOR)
 				.path("backup")
