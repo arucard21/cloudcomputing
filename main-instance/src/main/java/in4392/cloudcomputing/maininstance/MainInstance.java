@@ -647,17 +647,20 @@ public class MainInstance {
 
 	public static void setRestoreIdsForApplications(List<String> applicationIds) {
 		appOrchestratorRestoreState.put(INSTANCE_TYPE_APPLICATIONS, applicationIds);
-		backupApplicationsRestoreState();
+		if(!isShadow) {
+			backupApplicationsRestoreState();
+		}
 	}
 
 	public static void setRestoreIdForShadow(String shadowId) {
 		mainInstanceRestoreState.put(INSTANCE_TYPE_SHADOW, shadowId);
-		
 	}
 
 	public static void setBackupApplicationCounter(String applicationId, int counter) {
 		appOrchestratorRestoreApplicationCounters.put(applicationId, counter);
-		backupAppOrchestratorApplicationCounter(applicationId, counter);
+		if(!isShadow) {
+			backupAppOrchestratorApplicationCounter(applicationId, counter);
+		}
 	}
 
 	private static void backupApplicationsRestoreState() {
