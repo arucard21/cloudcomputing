@@ -180,16 +180,17 @@ public class AppOrchestrator {
 		}
 	}
 	
-	private static void checkAppInstanceLiveness(Instance appInstance) throws NoSuchAlgorithmException, IOException, URISyntaxException {
-		if (!isAppInstanceAlive(appInstance)) {
-			recoverAppInstance(appInstance);
-		}
-	}
-	
 	private static void checkAppInstancesLiveness() throws NoSuchAlgorithmException, IOException, URISyntaxException {
 		updateEC2InstanceForApplicationTargets();
+		List<Instance> brokenApplications = new ArrayList<>();
 		for (Target target : applicationTargets.values()) {
-			checkAppInstanceLiveness(target.getTargetInstance());
+			Instance appInstance = target.getTargetInstance();
+			if (!isAppInstanceAlive(appInstance)) {
+				brokenApplications.add(appInstance);
+			}
+		}
+		for(Instance brokenApplication: brokenApplications) {
+			recoverAppInstance(brokenApplication);
 		}
 	}
 	
