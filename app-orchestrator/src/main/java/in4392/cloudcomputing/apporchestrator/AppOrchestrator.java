@@ -102,16 +102,13 @@ public class AppOrchestrator {
 		if (toBeDownscaledInstances.isEmpty() && downscaleIterationWaitCounter < DOWNSCALE_WAIT_ITERATIONS) {
 			downscaleIterationWaitCounter++;
 		}
-		int count = 0;
 		int totalRequests = 0;
-		//Needed to deploy one application instance
-		int meanRequests = MAX_REQUESTS_PER_INSTANCE+1;
+		double meanRequests = 0;
 		for (Target target : applicationTargets.values()) {
-			count = target.getCurrentAmountOfRequests() < MAX_REQUESTS_PER_INSTANCE ? count + 1 : count;
 			totalRequests = totalRequests + target.getCurrentAmountOfRequests();
 		}	
 		if (applicationTargets.size() > 0){
-			meanRequests = Math.round(totalRequests/applicationTargets.size());
+			meanRequests = ((double) totalRequests)/applicationTargets.size();
 		}
 		
 		if (applicationTargets.size() < MINIMUM_INSTANCES || meanRequests > MAX_REQUESTS_PER_INSTANCE) {
