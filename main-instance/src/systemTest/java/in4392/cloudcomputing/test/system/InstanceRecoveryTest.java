@@ -33,7 +33,7 @@ public class InstanceRecoveryTest extends SystemTest {
 	 */
 	private static int RECOVERY_WAIT_ITERATION = 60 * 1000;
 	
-	private void testRecoveryOfInstance(Instance toBeTerminated, 
+	private String testRecoveryOfInstance(Instance toBeTerminated, 
 			Instance recoveryInstance, 
 			String recoveryInstanceApiRoot,
 			String recoveredInstanceDescribeName) throws URISyntaxException, InterruptedException {
@@ -68,30 +68,47 @@ public class InstanceRecoveryTest extends SystemTest {
 						.request()
 						.get();
 				if(healthResponse.getStatus() == 204) {
-					return;
+					return recoveredTerminatedInstance.getInstanceId();
 				}
 			}
 		}
 		Assertions.fail("The instance did not recover within an acceptable amount of time");
+		return null;
 	}
 	
 	@Test
 	public void appOrchestratorRecoversLoadBalancer() throws URISyntaxException, InterruptedException {
-		testRecoveryOfInstance(loadBalancer, applicationOrchestrator, "application-orchestrator", "load-balancer");
+		String recoveredId = testRecoveryOfInstance(loadBalancer, applicationOrchestrator, "application-orchestrator", "load-balancer");
+		if(recoveredId == null || recoveredId.isEmpty()) {
+			Assertions.fail("The load balancer could not be recovered");
+		}
+		loadBalancer = EC2.retrieveEC2InstanceWithId(recoveredId);
 	}
 	
 	@Test
 	public void mainInstanceRecoversShadow() throws URISyntaxException, InterruptedException {
-		testRecoveryOfInstance(shadow, mainInstance, "main", "shadow");
+		String recoveredId = testRecoveryOfInstance(shadow, mainInstance, "main", "shadow");
+		if(recoveredId == null || recoveredId.isEmpty()) {
+			Assertions.fail("The shadow could not be recovered");
+		}
+		shadow = EC2.retrieveEC2InstanceWithId(recoveredId);
 	}
 	
 	@Test
 	public void mainInstanceRecoversApplicationOrchestrator() throws URISyntaxException, InterruptedException {
-		testRecoveryOfInstance(applicationOrchestrator, mainInstance, "main", "application-orchestrator");
+		String recoveredId = testRecoveryOfInstance(applicationOrchestrator, mainInstance, "main", "application-orchestrator");
+		if(recoveredId == null || recoveredId.isEmpty()) {
+			Assertions.fail("The application orchestrator could not be recovered");
+		}
+		applicationOrchestrator = EC2.retrieveEC2InstanceWithId(recoveredId);
 	}
 
 	@Test
 	public void shadowRecoversMainInstance() throws URISyntaxException, InterruptedException {
-		testRecoveryOfInstance(mainInstance, shadow, "main", "main");
+		String recoveredId = testRecoveryOfInstance(mainInstance, shadow, "main", "main");
+		if(recoveredId == null || recoveredId.isEmpty()) {
+			Assertions.fail("The main instance could not be recovered");
+		}
+		mainInstance = EC2.retrieveEC2InstanceWithId(recoveredId);
 	}
 }
