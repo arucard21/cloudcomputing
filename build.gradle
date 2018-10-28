@@ -53,6 +53,9 @@ subprojects{
 		if(project.hasProperty("mainInstanceHostname")){
 			useJUnitPlatform()
 			systemProperty "instance.url", project.property("mainInstanceHostname")
+			systemProperty "instance.url", project.property("mainInstanceHostname")
+			systemProperty "aws_secret_access_key", aws_secret_access_key
+			systemProperty "aws_access_key_id", aws_access_key_id
 			testClassesDirs = project.sourceSets.systemTest.output.classesDirs
 			classpath = project.sourceSets.systemTest.runtimeClasspath
 		}

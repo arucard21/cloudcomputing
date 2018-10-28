@@ -15,9 +15,12 @@ import javax.ws.rs.core.UriBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.ec2.model.Instance;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+
+import in4392.cloudcomputing.maininstance.EC2;
 
 /**
  * Initialize the variables needed for all system tests
@@ -39,12 +42,19 @@ public abstract class SystemTest {
 	@BeforeEach
 	public void initializeTestVariables() throws URISyntaxException {
 		createClient();
+		setEC2Credentials();
 		getMainInstanceURIFromSystemProperty();
 		getShadowURIFromMainInstance();
 		getApplicationOrchestratorURIFromMainInstance();
 		getLoadBalancerURIFromAppOrchestrator();
 		getApplicationURIsFromAppOrchestrator();
 		testVideoSmall = Paths.get(ClassLoader.getSystemResource("sintel_trailer-480p.mp4").toURI());
+	}
+
+	private void setEC2Credentials() {
+		String accessKey = System.getProperty("aws_access_key_id");
+		String secretKey = System.getProperty("aws_secret_access_key");
+		EC2.setCredentials(new BasicAWSCredentials(accessKey, secretKey));
 	}
 
 	private void getApplicationURIsFromAppOrchestrator() {
