@@ -578,9 +578,7 @@ public class MainInstance {
 		if(loadBalancer != null) {			
 			instanceIds.add(loadBalancer.getInstanceId());
 		}		
-		System.out.println(appOrchestratorDescribeApplications);
 		Collection<Instance> applications = client.target(appOrchestratorDescribeApplications).request().get(new GenericType<Collection<Instance>>(new TypeReference<Collection<Instance>>() {}.getType()));
-		//Collection<Instance> applications = (Collection<Instance>) client.target(appOrchestratorDescribeApplications).request().get();
 		if(applications != null && !applications.isEmpty()) {
 			applications.forEach((instance) -> instanceIds.add(instance.getInstanceId()));
 		}
@@ -600,7 +598,6 @@ public class MainInstance {
 	}
 
 	private static List<Datapoint> getSingleMetric(Dimension instanceDimension, String metricName) {
-		System.out.println(metricName);
 		Date oneHourAgoInUTCTimezone = Date.from(ZonedDateTime.now(ZoneOffset.UTC).minusHours(1).toInstant());
 		Date currentTimeInUTCTimezone = Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant());
 		GetMetricStatisticsRequest metricStatisticsRequest = new GetMetricStatisticsRequest()
