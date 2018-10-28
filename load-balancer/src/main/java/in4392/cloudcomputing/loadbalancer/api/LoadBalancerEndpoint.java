@@ -35,7 +35,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 @Path("load-balancer")
 @Produces(MediaType.APPLICATION_JSON)
 public class LoadBalancerEndpoint {
-	private static final int RETRY_WAIT_TIME = 20000;
+	private static final int RETRY_WAIT_TIME = 10000;
 	int index;
 	List<Target> targets = new ArrayList<>();
 	URI appOrchestratorURI;
@@ -95,7 +95,6 @@ public class LoadBalancerEndpoint {
 				.request()
 				.get(URI.class);
 		
-		System.out.println("Redirecting video to application server at " + applicationURI.toString());
 		
 		InputStream video = null ;
 		boolean waitingForConvertedVideo = true;
@@ -116,6 +115,7 @@ public class LoadBalancerEndpoint {
 					.request()
 					.get();
 				}
+				System.out.println("Redirecting video to application server at " + applicationURI.toString());
 				video = ClientBuilder
 						.newBuilder()
 						.connectTimeout(1, TimeUnit.DAYS)
@@ -140,7 +140,7 @@ public class LoadBalancerEndpoint {
 				System.out.println("Decreasing request counter in app orchestrator since the request to this application instance failed");
 				decrementRequestsForApplication(applicationURI);
 				failedApplications.add(applicationURI.getHost());
-				System.out.println("Retrying connection after sleeping for 20 seconds");
+				System.out.println("Retrying connection after sleeping for 10 seconds");
 				try {
 					Thread.sleep(RETRY_WAIT_TIME);
 				} catch (InterruptedException e2) {

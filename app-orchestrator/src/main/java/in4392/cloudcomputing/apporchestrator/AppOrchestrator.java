@@ -77,7 +77,6 @@ public class AppOrchestrator {
 	private static void deployApplication() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		System.out.println("Starting User Application deployment");
 		Instance applicationInstance = EC2.deployDefaultEC2("User Application", AWS_KEYPAIR_NAME, getApplicationUserData());
-		applicationTargets.put(applicationInstance.getInstanceId(), new Target(applicationInstance, 0));
 		backupApplicationIds();
 		System.out.println("User Application deployed, waiting for instance to run");
 		EC2.waitForInstanceToRun(applicationInstance.getInstanceId());
@@ -86,6 +85,7 @@ public class AppOrchestrator {
 		System.out.println("Starting User Application application");
 		EC2.startDeployedApplication(applicationInstance, "application");
 		System.out.println("User Application application started");
+		applicationTargets.put(applicationInstance.getInstanceId(), new Target(applicationInstance, 0));
 	}
 
 	private static String getApplicationUserData() {
