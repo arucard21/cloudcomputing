@@ -12,6 +12,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -114,7 +115,11 @@ public class LoadBalancerEndpoint {
 					.request()
 					.get();
 				}
-				video = ClientBuilder.newClient()
+				video = ClientBuilder
+						.newBuilder()
+						.connectTimeout(1, TimeUnit.DAYS)
+						.readTimeout(1, TimeUnit.DAYS)
+						.build()
 						.target(
 								UriBuilder.fromUri(applicationURI)
 								.path("application")
