@@ -1,26 +1,31 @@
 Experiments
 
 Application Scaling Test: 	TODO
-not checked at all yet
+not checked at all yet. should be tested
 
 I added functionality in the user application endpoint to wait with the request if there are already 5 videos
 being converted at the same time, but I haven't tested it yet. The request will simply wait in the application 
 instance, after writing the input to file and creating the output file, until some other videos are done. This
 is not necessarily FIFO since it also depends on when the request actually checks the counter.
 
+I also configured the app orchestrator to keep a minimum of 2 application instances, so this test was updated 
+to match that. This should still be tested.
+
 
 Component Liveness Test: 	WORKS
 Verifies that all components are healthy
 
-End to End Test: 			TODO 
-only checked the test where everything remains working, it seems to give a false positive 
-because the application log still shows the broken pipe error. I think the test is okay, but
-we just need to manually check that the error isn't showing when we run this.
+End to End Test: 			TODO (mostly works)
+I fixed the problem that was causing the broken pipe and I have implemented a fix for the second test, where the 
+application instance didn't fail during testing. The first test succeeds but the second one fails because it
+takes too long for the fallback application instance to become available. This might work now with the minimum
+of 2 app instances. Should be tested. 
 
 Instance Recovery Test:		TODO
-not checked at all yet.
+not checked at all yet. should be tested
 
 Performance Stress Test: 	TODO
 single request seems to work, it calculates the metrics
 needs to be checked for multiple requests (see if 100 and 1000 even work)
-we might need to modify the scaling up/down mechanism and actually reject some requests if overloaded
+with the application waiting with more than 5 requests, this may be more feasible now.
+should be tested.
