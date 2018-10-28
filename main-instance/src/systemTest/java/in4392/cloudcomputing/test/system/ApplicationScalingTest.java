@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Future;
 
 import javax.ws.rs.client.Entity;
@@ -45,6 +48,11 @@ public class ApplicationScalingTest extends SystemTest{
 										Assertions.assertNotNull(response);
 										try {
 											Assertions.assertTrue(response.available() > 0);
+											// actually read the inputstream so the connection doesn't get broken prematurely
+											UUID convertedFileName = UUID.randomUUID();
+											Path convertedFile = Paths.get(convertedFileName+".mkv");
+											Files.copy(response, convertedFile);
+											convertedFile.toFile().delete();
 										} catch (IOException e) {
 											e.printStackTrace();
 										}
