@@ -615,10 +615,6 @@ public class MainInstance {
 				return dp1.getTimestamp().compareTo(dp2.getTimestamp());
 			}
 		});
-		for (Datapoint datapoint : metricDatapoints) {
-			System.out.println(datapoint.getTimestamp());
-			System.out.println(datapoint.getAverage());
-		}
 		return metricDatapoints;
 	}
 
