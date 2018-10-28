@@ -1,4 +1,29 @@
-1. Main Instance recovery needs to be fully tested. Has a last moment fix that will probably make it work.
-2. AppOrchestrator recovers ApplicationIds in a weird way, as one String for all instances. Need to figure out why.
-	I think this is because I used a List where an array was expected. Can you test this again?
-3. There seems to be a problem with the AppOrchestrator when the Load Balancer receives more than two requests in the same time period. No additional instance id is returned to the Load Balancer and the subsequent video conversion request fails.
+Experiments
+
+Application Scaling Test: 	TODO
+not checked at all, but we may need to change how the app orchestrator scales up and down
+maybe it should work as follows:
+- scale down if mean requests per instance <= 1
+- scale up if mean requests per instance >= 3
+- reject new requests if mean requests per instance >= 5 
+this way we don't crash the applications if we get a burst of requests
+
+alternatively, we can store the input videos on the application instance and have it get to it later
+(so we create a queue in the application instance)
+this way, we won't have to change the scaling mechanism and seems less likely to break existing functionality.
+
+Component Liveness Test: 	WORKS
+Verifies that all components are healthy
+
+End to End Test: 			TODO 
+only checked the test where everything remains working, it seems to give a false positive 
+because the application log still shows the broken pipe error. I think the test is okay, but
+we just need to manually check that the error isn't showing when we run this.
+
+Instance Recovery Test:		TODO
+not checked at all yet.
+
+Performance Stress Test: 	TODO
+single request seems to work, it calculates the metrics
+needs to be checked for multiple requests (see if 100 and 1000 even work)
+we might need to modify the scaling up/down mechanism and actually reject some requests if overloaded
