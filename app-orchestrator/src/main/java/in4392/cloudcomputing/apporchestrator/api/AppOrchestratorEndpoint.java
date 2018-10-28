@@ -123,8 +123,8 @@ public class AppOrchestratorEndpoint {
 	 */
 	@Path("leastUtilizedInstance")
 	@GET
-	public URI sendLeastLoaded() throws NoSuchAlgorithmException, IOException, URISyntaxException{
-		String minId = AppOrchestrator.findLeastLoadedAppInstance();
+	public URI sendLeastLoaded(@QueryParam("failedApplications") List<String> failedApplicationHostnames) throws NoSuchAlgorithmException, IOException, URISyntaxException{
+		String minId = AppOrchestrator.findLeastLoadedAppInstance(failedApplicationHostnames);
 		String applicationDnsName = AppOrchestrator.getApplicationTargets().get(minId).getTargetInstance().getPublicDnsName();
 		AppOrchestrator.incrementRequests(minId);
 		URI applicationURI = UriBuilder.fromPath("")

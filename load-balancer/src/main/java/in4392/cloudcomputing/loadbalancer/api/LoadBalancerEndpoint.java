@@ -99,6 +99,7 @@ public class LoadBalancerEndpoint {
 		
 		InputStream video = null ;
 		boolean waitingForConvertedVideo = true;
+		List<String> failedApplications = new ArrayList<>();
 		int attempts = 0;
 		while (waitingForConvertedVideo && attempts < 10) {
 			try {
@@ -138,6 +139,7 @@ public class LoadBalancerEndpoint {
 			} catch (Exception e) {
 				System.out.println("Decreasing request counter in app orchestrator since the request to this application instance failed");
 				decrementRequestsForApplication(applicationURI);
+				failedApplications.add(applicationURI.getHost());
 				System.out.println("Retrying connection after sleeping for 20 seconds");
 				try {
 					Thread.sleep(RETRY_WAIT_TIME);
@@ -153,6 +155,7 @@ public class LoadBalancerEndpoint {
 								.port(8080)
 								.path("application-orchestrator")
 								.path("leastUtilizedInstance")
+								.queryParam("failedApplications", failedApplications.toArray())
 								.build())
 						.request()
 						.get(URI.class);

@@ -127,7 +127,7 @@ public class AppOrchestrator {
 				 * downscale by marking the least used application so it is no longer used
 				 * (and can be removed once it's completely unused)
 				 */
-				String instanceIdOfLeastLoadedApplication = findLeastLoadedAppInstance();
+				String instanceIdOfLeastLoadedApplication = findLeastLoadedAppInstance(Collections.emptyList());
 				toBeDownscaledInstances.add(instanceIdOfLeastLoadedApplication);
 				downscaleIterationWaitCounter = 0;
 			}
@@ -147,14 +147,18 @@ public class AppOrchestrator {
 
 	/**
 	 * LoadBalancing policy. find the target appInstance with the minimum number of current requests
+	 * 
+	 * @param failedApplicationHostnames is a list of application host names that failed to work. They are guaranteed
+	 * not to be returned as least loaded app instance.
 	 * @return
 	 * @throws IOException 
 	 * @throws NoSuchAlgorithmException 
 	 */
-	public static String findLeastLoadedAppInstance() throws NoSuchAlgorithmException, IOException {		
+	public static String findLeastLoadedAppInstance(List<String> failedApplicationHostnames) throws NoSuchAlgorithmException, IOException {		
 		Map<Integer, String> instanceUtilizations = new HashMap<>();
 		for(Entry<String, Target> targetEntry : applicationTargets.entrySet()) {
-			if(!toBeDownscaledInstances.contains(targetEntry.getKey())) {
+			if(!toBeDownscaledInstances.contains(targetEntry.getKey()) ||
+					!failedApplicationHostnames.contains(targetEntry.getValue().getTargetInstance().getPublicDnsName())) {
 				Target target = targetEntry.getValue();
 				instanceUtilizations.put(target.getCurrentAmountOfRequests(), target.getTargetInstance().getInstanceId());
 			}
