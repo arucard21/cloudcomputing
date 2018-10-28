@@ -218,23 +218,24 @@ public class MainInstance {
 	}
 	
 	private static void redeployMainInstance() throws IOException, NoSuchAlgorithmException, URISyntaxException {
-		mainInstance = EC2.deployDefaultEC2(TAG_REDEPLOYED_MAIN_INSTANCE, AWS_KEYPAIR_NAME);
+		Instance deployedInstance = EC2.deployDefaultEC2(TAG_REDEPLOYED_MAIN_INSTANCE, AWS_KEYPAIR_NAME);
 		System.out.println("Main Instance redeployed");
-		EC2.waitForInstanceToRun(mainInstance.getInstanceId());
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), mainInstance);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), mainInstance);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), mainInstance);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), mainInstance);
-		EC2.startDeployedApplication(mainInstance, "main-instance");
+		EC2.waitForInstanceToRun(deployedInstance.getInstanceId());
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), deployedInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), deployedInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), deployedInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), deployedInstance);
+		EC2.startDeployedApplication(deployedInstance, "main-instance");
 		waitForApplicationToStart();
-		uploadCredentials(mainInstance, API_ROOT_MAIN);
+		uploadCredentials(deployedInstance, API_ROOT_MAIN);
 		sendShadowIdFromRestoreStateToMainInstance();
 		sendApplicationOrchestratorIdFromRestoreStateToMainInstance();
-		mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, mainInstance.getInstanceId());
+		mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, deployedInstance.getInstanceId());
 		sendMainInstanceIdToApplicationOrchestratorFromShadow();
 		sendAppOrchestratorRestoreStateToMainInstance();
 		sendAppOrchestratorApplicationCountersToMainInstance();
-		startInstance(mainInstance, API_ROOT_MAIN);
+		startInstance(deployedInstance, API_ROOT_MAIN);
+		mainInstance = deployedInstance;
 		System.out.println("Main Instance application started");
 	}
 
