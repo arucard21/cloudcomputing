@@ -6,7 +6,9 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.UriBuilder;
 
@@ -46,10 +48,14 @@ public class EndToEndTest extends SystemTest{
 				.port(8080)
 				.path("load-balancer")
 				.path("entry")
+				.queryParam("delayApplication", 60)
 				.queryParam("failApplication", true)
 				.build();
 		try(InputStream inputVideo = Files.newInputStream(testVideoSmall)){
-			try(InputStream processedVideoInputStream = client
+			try(InputStream processedVideoInputStream = ClientBuilder
+					.newBuilder()
+					.readTimeout(5, TimeUnit.MINUTES)
+					.build()
 		    		.target(getLoadBalancerEntry)
 		    		.request()
 		    		.post(
