@@ -24,6 +24,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 @Named
 public class AppOrchestrator {
+	private static final int MINIMUM_INSTANCES = 2;
 	private static final int ITERATION_WAIT_TIME = 60 * 1000;
 	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
 	private static final int MIN_REQUESTS_PER_INSTANCE = 3;
@@ -112,7 +113,7 @@ public class AppOrchestrator {
 			meanRequests = Math.round(totalRequests/applicationTargets.size());
 		}
 		
-		if (meanRequests > MAX_REQUESTS_PER_INSTANCE) {
+		if (applicationTargets.size() < MINIMUM_INSTANCES || meanRequests > MAX_REQUESTS_PER_INSTANCE) {
 			/*
 			 * upscale by deploying 1 new application instance 
 			 */
@@ -120,7 +121,7 @@ public class AppOrchestrator {
 		}
 		else {
 			if (toBeDownscaledInstances.isEmpty() &&
-					applicationTargets.size() > 1 && 
+					applicationTargets.size() > MINIMUM_INSTANCES && 
 					meanRequests < MIN_REQUESTS_PER_INSTANCE) {
 				/*
 				 * downscale by marking the least used application so it is no longer used
