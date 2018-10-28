@@ -121,6 +121,7 @@ public class AppOrchestrator {
 			if (toBeDownscaledInstances.isEmpty() &&
 					applicationTargets.size() > MINIMUM_INSTANCES && 
 					meanRequests < MIN_REQUESTS_PER_INSTANCE) {
+				System.out.println("Downscale application instances");
 				/*
 				 * downscale by marking the least used application so it is no longer used
 				 * (and can be removed once it's completely unused)

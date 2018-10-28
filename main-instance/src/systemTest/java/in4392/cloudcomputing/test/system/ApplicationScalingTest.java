@@ -26,6 +26,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 public class ApplicationScalingTest extends SystemTest{
 	
+	private List<Future<InputStream>> ongoingRequests;
+
 	private void sendRequestsToApplicationWithDelay(int amountOfRequests, int delayInSeconds) throws IOException {
 		URI getLoadBalancerEntry = UriBuilder.fromUri(loadBalancerURI)
 				.port(8080)
@@ -33,7 +35,7 @@ public class ApplicationScalingTest extends SystemTest{
 				.path("entry")
 				.queryParam("delayApplication", delayInSeconds)
 				.build();
-		List<Future<InputStream>> ongoingRequests = new ArrayList<>();
+		ongoingRequests = new ArrayList<>();
 		for(int i = 0; i < amountOfRequests; i++) {			
 			try(InputStream inputVideo = Files.newInputStream(testVideoSmall)){
 				ongoingRequests.add(client
@@ -63,16 +65,6 @@ public class ApplicationScalingTest extends SystemTest{
 										throwable.printStackTrace();
 									}
 								}));				
-			}
-		}
-		while(true) {
-			if (ongoingRequests.stream().allMatch((request) -> request.isDone())) {
-				break;
-			}
-			try {
-				Thread.sleep(1 * 1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
 		}
 	}
