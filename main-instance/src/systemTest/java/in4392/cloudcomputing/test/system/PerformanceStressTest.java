@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Future;
 
 import javax.ws.rs.client.Entity;
@@ -16,6 +19,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -52,6 +56,11 @@ public class PerformanceStressTest extends SystemTest{
 										Assertions.assertNotNull(response);
 										try {
 											Assertions.assertTrue(response.available() > 0);
+											// actually read the inputstream so the connection doesn't get broken prematurely
+											UUID convertedFileName = UUID.randomUUID();
+											Path convertedFile = Paths.get(convertedFileName+".mkv");
+											Files.copy(response, convertedFile);
+											convertedFile.toFile().delete();
 										} catch (IOException e) {
 											e.printStackTrace();
 										}
@@ -101,16 +110,19 @@ public class PerformanceStressTest extends SystemTest{
 	}
 	
 	@Test
+	@Disabled
 	public void stressTestWithTenRequests() throws IOException {
 		measureLatencyAndThroughput(10);
 	}
 	
 	@Test
+	@Disabled
 	public void stressTestWithOneHundredRequests() throws IOException {
 		measureLatencyAndThroughput(100);
 	}
 	
 	@Test
+	@Disabled
 	public void stressTestWithOneThousandRequests() throws IOException {
 		measureLatencyAndThroughput(1000);
 	}
