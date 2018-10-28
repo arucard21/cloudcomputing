@@ -28,6 +28,8 @@ import javax.ws.rs.core.UriInfo;
 @Named
 @Path("application")
 public class UserApplicationEndpoint {
+	private static final int MAX_CONCURRENT_REQUESTS = 5;
+	private static int concurrentRequestCounter = 0;
 	/**
 	 * 
 	 * @return a 204 HTTP status with no content, if successful
@@ -66,6 +68,12 @@ public class UserApplicationEndpoint {
         
         Files.copy(data, inputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         outputFile.createNewFile();
+        
+        // wait until there are less than the max amount of requests being processed
+        while (concurrentRequestCounter >= MAX_CONCURRENT_REQUESTS) {
+        	Thread.sleep(30 * 1000);
+        }
+        concurrentRequestCounter++;
 		
         String cmd = String.format(
         		"ffmpeg -y -i %s -codec:v libx264 -codec:a copy %s", 
@@ -99,6 +107,7 @@ public class UserApplicationEndpoint {
 			else {
 				System.out.println("Failed to delete output file");
 			}
+			concurrentRequestCounter--;
 			return inMemOutputFile;
 		}
 	}
