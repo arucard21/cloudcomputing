@@ -87,7 +87,7 @@ public abstract class SystemTest {
 
 	private void getMainInstanceURIFromSystemProperty() throws URISyntaxException {
 		mainInstanceURI = new URI("http", System.getProperty("instance.url"), null, null);
-		URI mainInstanceDescribeMainInstanceURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("shadow").build();
+		URI mainInstanceDescribeMainInstanceURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("main").build();
 		mainInstance = client.target(mainInstanceDescribeMainInstanceURI).request().get(Instance.class);
 	}
 
