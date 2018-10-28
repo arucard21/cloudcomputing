@@ -229,7 +229,7 @@ public class AppOrchestratorEndpoint {
 	
 	@Path("terminateApplication")
 	@GET
-	public Response terminateApplication(String hostname) {
+	public Response terminateApplication(@QueryParam("applicationDnsName") String hostname) {
 		Optional<String> applicationIdOptional = AppOrchestrator.getApplicationTargets().entrySet()
 				.stream()
 				.map(entry -> entry.getValue().getTargetInstance())

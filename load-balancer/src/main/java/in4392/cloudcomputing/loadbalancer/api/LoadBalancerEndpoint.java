@@ -114,8 +114,8 @@ public class LoadBalancerEndpoint {
 					.request()
 					.get();
 				}
-				video = ClientBuilder.newClient().
-						target(
+				video = ClientBuilder.newClient()
+						.target(
 								UriBuilder.fromUri(applicationURI)
 								.path("application")
 								.path("video")
