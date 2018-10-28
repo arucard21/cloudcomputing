@@ -1,25 +1,16 @@
 Experiments
 
-Application Scaling Test: 	TODO
-not checked at all yet. should be tested
-
-I added functionality in the user application endpoint to wait with the request if there are already 5 videos
-being converted at the same time, but I haven't tested it yet. The request will simply wait in the application 
-instance, after writing the input to file and creating the output file, until some other videos are done. This
-is not necessarily FIFO since it also depends on when the request actually checks the counter.
-
-I also configured the app orchestrator to keep a minimum of 2 application instances, so this test was updated 
-to match that. This should still be tested.
-
+Application Scaling Test: 	WORKS
+Not tested with the fixed load balancer, but I tested that the fix should work. 
+The only thing that might still need changing is the delays used to wait for the scaling. 
+If it waits too long, it might already scale down. The current values seem like they should be sufficient
 
 Component Liveness Test: 	WORKS
 Verifies that all components are healthy
 
 End to End Test: 			TODO (mostly works)
-I fixed the problem that was causing the broken pipe and I have implemented a fix for the second test, where the 
-application instance didn't fail during testing. The first test succeeds but the second one fails because it
-takes too long for the fallback application instance to become available. This might work now with the minimum
-of 2 app instances. Should be tested. 
+First test works. For the second test, the load balancer keeps using the same URI. Even though the app 
+orchestrator is actually returning a different URI now. Not sure why, this just needs fresh eyes.
 
 Instance Recovery Test:		TODO
 not checked at all yet. should be tested
