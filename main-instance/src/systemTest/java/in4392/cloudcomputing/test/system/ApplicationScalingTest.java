@@ -105,15 +105,21 @@ public class ApplicationScalingTest extends SystemTest{
 	public void scaleUpAndDownByOneInstance() throws IOException, InterruptedException {
 		int initialAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
 		Assertions.assertEquals(2, initialAmountOfApplications);
-		sendRequestsToApplicationWithDelay(11, 120);
+		sendRequestsToApplicationWithDelay(11, 300);
 
-		// wait for scaling up (at least 1 iteration of the app orchestrator and less than it takes to complete the request)
-		Thread.sleep(100 * 1000);
+		/*
+		 * wait for scaling up (includes waiting for the next iteration as well as for all status 
+		 * checks to pass on the deployed instance)
+		 */
+		Thread.sleep(300 * 1000);
 		int scaledUpAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
 		Assertions.assertEquals(3, scaledUpAmountOfApplications);
 		
-		// wait for scaling down (at least 1 iteration of the app orchestrator and more than the remaining time to complete the request)
-		Thread.sleep(80 * 1000);
+		/*
+		 * wait for scaling down (includes waiting for the next iteration as well as for all requests
+		 * on the instance to be completed and the instance to be terminated)
+		 */
+		Thread.sleep(120 * 1000);
 		int scaledDownAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
 		Assertions.assertEquals(2, scaledDownAmountOfApplications);
 	}
