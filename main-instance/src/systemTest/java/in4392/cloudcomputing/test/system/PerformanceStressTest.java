@@ -19,7 +19,6 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -29,6 +28,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import in4392.cloudcomputing.maininstance.InstanceMetrics;
 
+/**
+ * 
+ * Tests the performance of the system when receiving many requests.
+ * 
+ * Note that the requests may not all succeed as the stress test may cause requests
+ * to time out. The point of this test is to check the performance of the system, 
+ * not its reliability. So even when requests time out, these tests will pass.
+ *
+ */
 public class PerformanceStressTest extends SystemTest{
 	
 	public void measureLatencyAndThroughput(int amountOfRequests) throws IOException {
@@ -110,20 +118,17 @@ public class PerformanceStressTest extends SystemTest{
 	}
 	
 	@Test
-	@Disabled
 	public void stressTestWithTenRequests() throws IOException {
 		measureLatencyAndThroughput(10);
 	}
 	
 	@Test
-	@Disabled
-	public void stressTestWithOneHundredRequests() throws IOException {
-		measureLatencyAndThroughput(100);
+	public void stressTestWithTwentyRequests() throws IOException {
+		measureLatencyAndThroughput(20);
 	}
 	
 	@Test
-	@Disabled
-	public void stressTestWithOneThousandRequests() throws IOException {
-		measureLatencyAndThroughput(1000);
+	public void stressTestWithFiftyRequests() throws IOException {
+		measureLatencyAndThroughput(50);
 	}
 }
