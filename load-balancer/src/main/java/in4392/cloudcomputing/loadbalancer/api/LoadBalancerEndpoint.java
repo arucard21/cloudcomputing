@@ -12,7 +12,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -103,10 +102,7 @@ public class LoadBalancerEndpoint {
 		while (waitingForConvertedVideo && attempts < 10) {
 			try {
 				if (attempts == 0 && failApplication) {
-					ClientBuilder.newBuilder()
-					.connectTimeout(1, TimeUnit.DAYS)
-					.readTimeout(1, TimeUnit.DAYS)
-					.build()
+					ClientBuilder.newClient()
 					.register(JacksonJsonProvider.class)
 					.target(
 							UriBuilder.fromUri(appOrchestratorURI)
@@ -118,8 +114,8 @@ public class LoadBalancerEndpoint {
 					.request()
 					.get();
 				}
-				video = ClientBuilder.newClient()
-						.target(
+				video = ClientBuilder.newClient().
+						target(
 								UriBuilder.fromUri(applicationURI)
 								.path("application")
 								.path("video")
