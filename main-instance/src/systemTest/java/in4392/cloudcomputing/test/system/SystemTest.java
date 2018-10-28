@@ -5,7 +5,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -82,10 +81,6 @@ public abstract class SystemTest {
 	}
 
 	private void createClient() {
-		client = ClientBuilder.newBuilder()
-				.connectTimeout(5, TimeUnit.MINUTES)
-				.readTimeout(5, TimeUnit.MINUTES)
-				.build()
-				.register(JacksonJsonProvider.class);
+		client = ClientBuilder.newClient().register(JacksonJsonProvider.class);
 	}
 }
