@@ -36,6 +36,7 @@ public class InstanceRecoveryTest extends SystemTest {
 	private String testRecoveryOfInstance(Instance toBeTerminated, 
 			Instance recoveryInstance, 
 			String recoveryInstanceApiRoot,
+			String recoveredInstanceApiRoot,
 			String recoveredInstanceDescribeName) throws URISyntaxException, InterruptedException {
 		String terminatedInstanceId = toBeTerminated.getInstanceId();
 		EC2.terminateEC2(terminatedInstanceId);
@@ -61,7 +62,7 @@ public class InstanceRecoveryTest extends SystemTest {
 				URI recoveredTerminatedInstanceHealthURI = UriBuilder.fromPath("")
 						.scheme("http")
 						.host(recoveredTerminatedInstance.getPublicDnsName())
-						.path("load-balancer")
+						.path(recoveredInstanceApiRoot)
 						.path("health")
 						.build();
 				Response healthResponse = client.target(recoveredTerminatedInstanceHealthURI)
@@ -78,7 +79,7 @@ public class InstanceRecoveryTest extends SystemTest {
 	
 	@Test
 	public void appOrchestratorRecoversLoadBalancer() throws URISyntaxException, InterruptedException {
-		String recoveredId = testRecoveryOfInstance(loadBalancer, applicationOrchestrator, "application-orchestrator", "load-balancer");
+		String recoveredId = testRecoveryOfInstance(loadBalancer, applicationOrchestrator, "application-orchestrator", "load-balancer", "load-balancer");
 		if(recoveredId == null || recoveredId.isEmpty()) {
 			Assertions.fail("The load balancer could not be recovered");
 		}
@@ -87,7 +88,7 @@ public class InstanceRecoveryTest extends SystemTest {
 	
 	@Test
 	public void mainInstanceRecoversShadow() throws URISyntaxException, InterruptedException {
-		String recoveredId = testRecoveryOfInstance(shadow, mainInstance, "main", "shadow");
+		String recoveredId = testRecoveryOfInstance(shadow, mainInstance, "main", "main", "shadow");
 		if(recoveredId == null || recoveredId.isEmpty()) {
 			Assertions.fail("The shadow could not be recovered");
 		}
@@ -96,7 +97,7 @@ public class InstanceRecoveryTest extends SystemTest {
 	
 	@Test
 	public void mainInstanceRecoversApplicationOrchestrator() throws URISyntaxException, InterruptedException {
-		String recoveredId = testRecoveryOfInstance(applicationOrchestrator, mainInstance, "main", "application-orchestrator");
+		String recoveredId = testRecoveryOfInstance(applicationOrchestrator, mainInstance, "main", "application-orchestrator", "application-orchestrator");
 		if(recoveredId == null || recoveredId.isEmpty()) {
 			Assertions.fail("The application orchestrator could not be recovered");
 		}
@@ -105,7 +106,7 @@ public class InstanceRecoveryTest extends SystemTest {
 
 	@Test
 	public void shadowRecoversMainInstance() throws URISyntaxException, InterruptedException {
-		String recoveredId = testRecoveryOfInstance(mainInstance, shadow, "main", "main");
+		String recoveredId = testRecoveryOfInstance(mainInstance, shadow, "main", "main", "main");
 		if(recoveredId == null || recoveredId.isEmpty()) {
 			Assertions.fail("The main instance could not be recovered");
 		}
