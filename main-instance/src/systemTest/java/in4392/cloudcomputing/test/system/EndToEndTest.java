@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.UriBuilder;
@@ -29,6 +31,11 @@ public class EndToEndTest extends SystemTest{
 		    				InputStream.class)){
 				Assertions.assertNotNull(processedVideoInputStream);
 				Assertions.assertTrue(processedVideoInputStream.available() > 0);
+				
+				// actually read the inputstream so the connection doesn't get broken prematurely
+				Path convertedFile = Paths.get("convertedFile.mkv");
+				Files.copy(processedVideoInputStream, convertedFile);
+				convertedFile.toFile().delete();
 			}
 		}
 	}
@@ -50,6 +57,11 @@ public class EndToEndTest extends SystemTest{
 		    				InputStream.class)){
 				Assertions.assertNotNull(processedVideoInputStream);
 				Assertions.assertTrue(processedVideoInputStream.available() > 0);
+				
+				// actually read the inputstream so the connection doesn't get broken prematurely
+				Path convertedFile = Paths.get("convertedFile.mkv");
+				Files.copy(processedVideoInputStream, convertedFile);
+				convertedFile.toFile().delete();
 			}
 		}
 	}
