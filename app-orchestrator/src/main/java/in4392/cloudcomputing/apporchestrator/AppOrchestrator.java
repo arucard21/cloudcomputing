@@ -80,6 +80,7 @@ public class AppOrchestrator {
 		backupApplicationIds();
 		System.out.println("User Application deployed, waiting for instance to run");
 		EC2.waitForInstanceToRun(applicationInstance.getInstanceId());
+		applicationInstance = EC2.retrieveEC2InstanceWithId(applicationInstance.getInstanceId());
 		System.out.println("Copying User Application application");
 		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), applicationInstance);
 		System.out.println("Starting User Application application");
