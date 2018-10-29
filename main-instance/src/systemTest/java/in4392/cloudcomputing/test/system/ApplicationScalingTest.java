@@ -98,22 +98,44 @@ public class ApplicationScalingTest extends SystemTest{
 	public void scaleUpAndDownByOneInstance() throws IOException, InterruptedException {
 		int initialAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
 		Assertions.assertEquals(2, initialAmountOfApplications);
-		sendRequestsToApplicationWithDelay(12, 360);
+		sendRequestsToApplicationWithDelay(12, 300);
 
 		/*
-		 * wait for scaling up (includes waiting for the next iteration as well as for all status 
-		 * checks to pass on the deployed instance)
+		 * wait for scaling up, check every minute
 		 */
-		Thread.sleep(300 * 1000);
-		int scaledUpAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
+		boolean scaledUp = false;
+		int scaledUpAmountOfApplications = 0;
+		for(int i = 0; i < 5; i++) {
+			scaledUpAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
+			if (scaledUpAmountOfApplications > initialAmountOfApplications) {
+				scaledUp = true;
+				break;
+			}
+			Thread.sleep(60 * 1000);
+		}
+		if (!scaledUp) {
+			Assertions.fail("The system did not scale up the applications");
+			return;
+		}
 		Assertions.assertEquals(3, scaledUpAmountOfApplications);
 		
 		/*
-		 * wait for scaling down (includes waiting for the next iteration as well as for all requests
-		 * on the instance to be completed and the instance to be terminated)
+		 * wait for scaling down, check every minute
 		 */
-		Thread.sleep(300 * 1000);
-		int scaledDownAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
+		boolean scaledDown = false;
+		int scaledDownAmountOfApplications = 0;
+		for(int i = 0; i < 5; i++) {
+			scaledDownAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
+			if (scaledDownAmountOfApplications < scaledUpAmountOfApplications) {
+				scaledDown = true;
+				break;
+			}
+			Thread.sleep(60 * 1000);
+		}
+		if (!scaledDown) {
+			Assertions.fail("The system did not scale down the applications");
+			return;
+		}
 		Assertions.assertEquals(2, scaledDownAmountOfApplications);
 	}
 }
