@@ -228,14 +228,14 @@ public class MainInstance {
 		EC2.startDeployedApplication(deployedInstance, "main-instance");
 		waitForApplicationToStart();
 		uploadCredentials(deployedInstance, API_ROOT_MAIN);
-		mainInstance = deployedInstance;
-		sendShadowIdFromRestoreStateToMainInstance();
-		sendApplicationOrchestratorIdFromRestoreStateToMainInstance();
-		mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, mainInstance.getInstanceId());
+		mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, deployedInstance.getInstanceId());
+		sendShadowIdFromRestoreStateToMainInstance(deployedInstance);
+		sendApplicationOrchestratorIdFromRestoreStateToMainInstance(deployedInstance);
 		sendMainInstanceIdToApplicationOrchestratorFromShadow();
-		sendAppOrchestratorRestoreStateToMainInstance();
-		sendAppOrchestratorApplicationCountersToMainInstance();
-		startInstance(mainInstance, API_ROOT_MAIN);
+		sendAppOrchestratorRestoreStateToMainInstance(deployedInstance);
+		sendAppOrchestratorApplicationCountersToMainInstance(deployedInstance);
+		startInstance(deployedInstance, API_ROOT_MAIN);
+		mainInstance = deployedInstance;
 		System.out.println("Main Instance application started");
 	}
 
@@ -428,8 +428,8 @@ public class MainInstance {
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(instanceCredentials).request().post(Entity.entity(credentials, MediaType.APPLICATION_JSON));
 	}
 	
-	private static void sendShadowIdFromRestoreStateToMainInstance() throws URISyntaxException {
-		URI mainInstanceURI = new URI("http", mainInstance.getPublicDnsName(), null, null);
+	private static void sendShadowIdFromRestoreStateToMainInstance(Instance redeployedMainInstance) throws URISyntaxException {
+		URI mainInstanceURI = new URI("http", redeployedMainInstance.getPublicDnsName(), null, null);
 		URI backupURI = UriBuilder.fromUri(mainInstanceURI).port(8080)
 				.path(API_ROOT_MAIN)
 				.path("backup")
@@ -450,8 +450,8 @@ public class MainInstance {
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
 	}
 	
-	private static void sendApplicationOrchestratorIdFromRestoreStateToMainInstance() throws URISyntaxException {
-		URI mainInstanceURI = new URI("http", mainInstance.getPublicDnsName(), null, null);
+	private static void sendApplicationOrchestratorIdFromRestoreStateToMainInstance(Instance redeployedMainInstance) throws URISyntaxException {
+		URI mainInstanceURI = new URI("http", redeployedMainInstance.getPublicDnsName(), null, null);
 		URI backupURI = UriBuilder.fromUri(mainInstanceURI).port(8080)
 				.path(API_ROOT_MAIN)
 				.path("backup")
@@ -692,10 +692,10 @@ public class MainInstance {
 		.get();
 	}
 	
-	private static void sendAppOrchestratorRestoreStateToMainInstance() {
+	private static void sendAppOrchestratorRestoreStateToMainInstance(Instance redeployedMainInstance) {
 		URI backupURI = UriBuilder.fromPath("")
 				.scheme("http")
-				.host(mainInstance.getPublicDnsName())
+				.host(redeployedMainInstance.getPublicDnsName())
 				.port(8080)
 				.path(API_ROOT_MAIN)
 				.path("backup")
@@ -708,10 +708,10 @@ public class MainInstance {
 		.get();
 	}
 	
-	private static void sendAppOrchestratorApplicationCountersToMainInstance() {
+	private static void sendAppOrchestratorApplicationCountersToMainInstance(Instance redeployedMainInstance) {
 		URI backupURI = UriBuilder.fromPath("")
 				.scheme("http")
-				.host(mainInstance.getPublicDnsName())
+				.host(redeployedMainInstance.getPublicDnsName())
 				.port(8080)
 				.path(API_ROOT_MAIN)
 				.path("backup")
