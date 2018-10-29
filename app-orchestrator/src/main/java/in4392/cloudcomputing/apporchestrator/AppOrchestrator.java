@@ -380,7 +380,6 @@ public class AppOrchestrator {
 		}
 		// Avoid ConcurrentModificiation Exception
 		toBeDownscaledInstances.removeAll(downscaledInstances);
-		downscaledInstances = new ArrayList<>();
 	}
 	
 	

@@ -125,7 +125,6 @@ public class LoadBalancerEndpoint {
 								UriBuilder.fromUri(applicationURI)
 								.path("application")
 								.path("video")
-								.queryParam("failApplication", failApplication)
 								.queryParam("delayApplication", delayApplication)
 								.build())
 						.request()
