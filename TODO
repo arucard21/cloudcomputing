@@ -4,6 +4,7 @@ Application Scaling Test: 	WORKS
 Not tested with the fixed load balancer, but I tested that the fix should work. 
 The only thing that might still need changing is the delays used to wait for the scaling. 
 If it waits too long, it might already scale down. The current values seem like they should be sufficient
+Test worked fine for me.
 
 Component Liveness Test: 	WORKS
 Verifies that all components are healthy
@@ -11,9 +12,11 @@ Verifies that all components are healthy
 End to End Test: 			TODO (mostly works)
 First test works. For the second test, the load balancer keeps using the same URI. Even though the app 
 orchestrator is actually returning a different URI now. Not sure why, this just needs fresh eyes.
+This worked fine for me
 
 Instance Recovery Test:		TODO
 not checked at all yet. should be tested
+I think I fixed the code in the main instance, but still I get ConnectException read timeout for newShadowDNS/main/health, even though the instance is running and responding to API requests from the command line. The test may need a larger RETRY_WAIT_TIME value as the current may cause the EC2 request limit exceeded problem.
 
 Performance Stress Test: 	WORKS
 Lowered the amounts to 1, 10, 20 and 50. I tested this with 100 requests and it did pass. 

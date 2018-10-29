@@ -228,29 +228,30 @@ public class MainInstance {
 		EC2.startDeployedApplication(deployedInstance, "main-instance");
 		waitForApplicationToStart();
 		uploadCredentials(deployedInstance, API_ROOT_MAIN);
+		mainInstance = deployedInstance;
 		sendShadowIdFromRestoreStateToMainInstance();
 		sendApplicationOrchestratorIdFromRestoreStateToMainInstance();
-		mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, deployedInstance.getInstanceId());
+		mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, mainInstance.getInstanceId());
 		sendMainInstanceIdToApplicationOrchestratorFromShadow();
 		sendAppOrchestratorRestoreStateToMainInstance();
 		sendAppOrchestratorApplicationCountersToMainInstance();
-		startInstance(deployedInstance, API_ROOT_MAIN);
-		mainInstance = deployedInstance;
+		startInstance(mainInstance, API_ROOT_MAIN);
 		System.out.println("Main Instance application started");
 	}
 
 	private static void deployShadow() throws IOException, NoSuchAlgorithmException, URISyntaxException {
-		shadow = EC2.deployDefaultEC2(TAG_SHADOW, AWS_KEYPAIR_NAME);
+		Instance deployedInstance = EC2.deployDefaultEC2(TAG_SHADOW, AWS_KEYPAIR_NAME);
 		System.out.println("Shadow deployed");
-		EC2.waitForInstanceToRun(shadow.getInstanceId());
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), shadow);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), shadow);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), shadow);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), shadow);
-		EC2.startDeployedApplication(shadow, "main-instance");
+		EC2.waitForInstanceToRun(deployedInstance.getInstanceId());
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), deployedInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), deployedInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), deployedInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/main-instance.jar").toFile(), deployedInstance);
+		EC2.startDeployedApplication(deployedInstance, "main-instance");
 		waitForApplicationToStart();
-		uploadCredentials(shadow, API_ROOT_MAIN);
-		configureProvidedInstanceAsShadow(shadow);
+		uploadCredentials(deployedInstance, API_ROOT_MAIN);
+		configureProvidedInstanceAsShadow(deployedInstance);
+		shadow = deployedInstance;
 		//Such if conditions were changed because we thought there was an issue here with the previous ones, but it may not be the case
 		if (mainInstanceRestoreState.containsKey(INSTANCE_TYPE_APP_ORCHESTRATOR)) {
 			sendApplicationOrchestratorIdFromRestoreStateToShadow();
@@ -261,15 +262,16 @@ public class MainInstance {
 
 	private static void deployAppOrchestrator() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		EC2.ensureJavaKeyPairExists();
-		appOrchestrator = EC2.deployDefaultEC2(TAG_APP_ORCHESTRATOR, AWS_KEYPAIR_NAME);
+		Instance deployedInstance = EC2.deployDefaultEC2(TAG_APP_ORCHESTRATOR, AWS_KEYPAIR_NAME);
 		System.out.println("App Orchestrator deployed");
-		EC2.waitForInstanceToRun(appOrchestrator.getInstanceId());
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), appOrchestrator);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), appOrchestrator);
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), appOrchestrator);
-		EC2.startDeployedApplication(appOrchestrator, "app-orchestrator");
+		EC2.waitForInstanceToRun(deployedInstance.getInstanceId());
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), deployedInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), deployedInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/app-orchestrator.jar").toFile(), deployedInstance);
+		EC2.startDeployedApplication(deployedInstance, "app-orchestrator");
 		waitForApplicationToStart();
-		uploadCredentials(appOrchestrator, "application-orchestrator");
+		uploadCredentials(deployedInstance, "application-orchestrator");
+		appOrchestrator = deployedInstance;
 		if (appOrchestratorRestoreState.containsKey(INSTANCE_TYPE_LOAD_BALANCER)) {
 			sendLoadBalancerIdFromRestoreStateToApplicationOrchestrator();
 		}
