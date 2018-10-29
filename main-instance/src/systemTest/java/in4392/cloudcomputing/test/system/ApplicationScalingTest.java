@@ -94,14 +94,14 @@ public class ApplicationScalingTest extends SystemTest{
 	@Test
 	public void scaleUpAndDownByOneInstance() throws IOException, InterruptedException {
 		int initialAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
-		sendRequestsToApplicationWithDelay((initialAmountOfApplications*6), 300);
+		sendRequestsToApplicationWithDelay((initialAmountOfApplications*6), 600);
 
 		/*
 		 * wait for scaling up, check every minute
 		 */
 		boolean scaledUp = false;
 		int scaledUpAmountOfApplications = 0;
-		for(int i = 0; i < 5; i++) {
+		for(int i = 0; i < 20; i++) {
 			scaledUpAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
 			if (scaledUpAmountOfApplications > initialAmountOfApplications) {
 				scaledUp = true;
@@ -120,7 +120,7 @@ public class ApplicationScalingTest extends SystemTest{
 		 */
 		boolean scaledDown = false;
 		int scaledDownAmountOfApplications = 0;
-		for(int i = 0; i < 5; i++) {
+		for(int i = 0; i < 20; i++) {
 			scaledDownAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
 			if (scaledDownAmountOfApplications < scaledUpAmountOfApplications) {
 				scaledDown = true;
