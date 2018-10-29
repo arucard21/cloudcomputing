@@ -50,19 +50,21 @@ public class AppOrchestrator {
 	
 	private static void deployLoadBalancer() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		System.out.println("Starting Load Balancer deployment");
-		loadBalancer = EC2.deployDefaultEC2("Load Balancer", AWS_KEYPAIR_NAME);
-		backupLoadBalancer();
+		Instance deployedInstance = EC2.deployDefaultEC2("Load Balancer", AWS_KEYPAIR_NAME);
 		System.out.println("Load Balancer deployed, waiting for instance to run");
-		EC2.waitForInstanceToRun(loadBalancer.getInstanceId());
+		EC2.waitForInstanceToRun(deployedInstance.getInstanceId());
+		deployedInstance = EC2.retrieveEC2InstanceWithId(deployedInstance.getInstanceId());
 		System.out.println("Copying Load Balancer application");
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), loadBalancer);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/load-balancer.jar").toFile(), deployedInstance);
 		System.out.println("Starting Load Balancer application");
-		EC2.startDeployedApplication(loadBalancer, "load-balancer");
+		EC2.startDeployedApplication(deployedInstance, "load-balancer");
 		System.out.println("Load Balancer application started");
 		URI loadBalancerURI = new URI("http", getLoadBalancerURI(), null, null);
 		System.out.println(UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("appOrchestratorURI").build());
 		System.out.println(appOrchestrator.getPublicDnsName());
 		waitForApplicationToStart();
+		loadBalancer = deployedInstance;
+		backupLoadBalancer();
 		sendAppOrchestratorURIToLoadBalancer();
 	}
 	
@@ -77,7 +79,6 @@ public class AppOrchestrator {
 	private static void deployApplication() throws IOException, NoSuchAlgorithmException, URISyntaxException {
 		System.out.println("Starting User Application deployment");
 		Instance applicationInstance = EC2.deployDefaultEC2("User Application", AWS_KEYPAIR_NAME, getApplicationUserData());
-		backupApplicationIds();
 		System.out.println("User Application deployed, waiting for instance to run");
 		EC2.waitForInstanceToRun(applicationInstance.getInstanceId());
 		applicationInstance = EC2.retrieveEC2InstanceWithId(applicationInstance.getInstanceId());
@@ -87,6 +88,7 @@ public class AppOrchestrator {
 		EC2.startDeployedApplication(applicationInstance, "application");
 		System.out.println("User Application application started");
 		applicationTargets.put(applicationInstance.getInstanceId(), new Target(applicationInstance, 0));
+		backupApplicationIds();
 	}
 
 	private static String getApplicationUserData() {
