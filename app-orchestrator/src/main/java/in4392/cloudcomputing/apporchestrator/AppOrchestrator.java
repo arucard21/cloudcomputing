@@ -26,7 +26,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 public class AppOrchestrator {
 	private static final int MINIMUM_INSTANCES = 2;
 	private static final int ITERATION_WAIT_TIME = 60 * 1000;
-	private static final int MAX_REQUESTS_PER_INSTANCE = 5;
+	private static final double MAX_REQUESTS_PER_INSTANCE = 5;
 	private static final int MIN_REQUESTS_PER_INSTANCE = 3;
 	private static final String INSTANCE_TYPE_LOAD_BALANCER = "loadBalancer";
 	private static final String INSTANCE_TYPE_APPLICATIONS = "applications";
