@@ -72,6 +72,7 @@ public class InstanceRecoveryTest extends SystemTest {
 					return recoveredTerminatedInstance.getInstanceId();
 				}
 			}
+			Thread.sleep(100);
 		}
 		Assertions.fail("The instance did not recover within an acceptable amount of time");
 		return null;

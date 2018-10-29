@@ -28,7 +28,7 @@ public class ApplicationScalingTest extends SystemTest{
 	
 	private List<Future<InputStream>> ongoingRequests;
 
-	private void sendRequestsToApplicationWithDelay(int amountOfRequests, int delayInSeconds) throws IOException {
+	private void sendRequestsToApplicationWithDelay(int amountOfRequests, int delayInSeconds) throws IOException, InterruptedException {
 		URI getLoadBalancerEntry = UriBuilder.fromUri(loadBalancerURI)
 				.port(8080)
 				.path("load-balancer")
@@ -66,6 +66,7 @@ public class ApplicationScalingTest extends SystemTest{
 									}
 								}));				
 			}
+			Thread.sleep(100);
 		}
 	}
 	
