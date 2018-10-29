@@ -97,11 +97,8 @@ public class AppOrchestrator {
 
 	public static void scaleUpOrDown() throws NoSuchAlgorithmException, IOException, URISyntaxException {
 		// ensure that we wait at least the amount of iterations specified in DOWNSCALE_WAIT_ITERATIONS
-		// before we check to downscale again. This should allow the average amount of requests to
+		// before we check to scale down again. This should allow the average amount of requests to
 		// stabilize to a new value before we check it again.
-		if (toBeDownscaledInstances.isEmpty() && downscaleIterationWaitCounter < DOWNSCALE_WAIT_ITERATIONS) {
-			downscaleIterationWaitCounter++;
-		}
 		int totalRequests = 0;
 		double meanRequests = 0;
 		for (Target target : applicationTargets.values()) {
@@ -118,6 +115,10 @@ public class AppOrchestrator {
 			deployApplication();
 		}
 		else {
+			if (toBeDownscaledInstances.isEmpty() && downscaleIterationWaitCounter < DOWNSCALE_WAIT_ITERATIONS) {
+				downscaleIterationWaitCounter++;
+				return;
+			}
 			if (toBeDownscaledInstances.isEmpty() &&
 					applicationTargets.size() > MINIMUM_INSTANCES && 
 					meanRequests < MIN_REQUESTS_PER_INSTANCE) {
