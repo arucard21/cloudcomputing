@@ -111,6 +111,7 @@ public class InstanceRecoveryTest extends SystemTest {
 		if(recoveredId == null || recoveredId.isEmpty()) {
 			Assertions.fail("The main instance could not be recovered");
 		}
+		System.setProperty("instance.url", recoveredId);
 		mainInstance = EC2.retrieveEC2InstanceWithId(recoveredId);
 	}
 }
