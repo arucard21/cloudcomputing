@@ -95,7 +95,7 @@ public class InstanceRecoveryTest extends SystemTest {
 		loadBalancer = EC2.retrieveEC2InstanceWithId(recoveredId);
 	}
 	
-	@Disabled
+	@Test
 	public void mainInstanceRecoversShadow() throws URISyntaxException, InterruptedException {
 		String recoveredId = testRecoveryOfInstance(shadow, mainInstance, "main", "main", "shadow");
 		if(recoveredId == null || recoveredId.isEmpty()) {
@@ -104,13 +104,16 @@ public class InstanceRecoveryTest extends SystemTest {
 		shadow = EC2.retrieveEC2InstanceWithId(recoveredId);
 	}
 	
-	@Disabled
+	@Test
 	public void mainInstanceRecoversApplicationOrchestrator() throws URISyntaxException, InterruptedException {
 		String recoveredId = testRecoveryOfInstance(applicationOrchestrator, mainInstance, "main", "application-orchestrator", "application-orchestrator");
 		if(recoveredId == null || recoveredId.isEmpty()) {
 			Assertions.fail("The application orchestrator could not be recovered");
 		}
 		applicationOrchestrator = EC2.retrieveEC2InstanceWithId(recoveredId);
+		
+		// added some wait befor the method returns
+		Thread.sleep(5 * 60 *1000);
 	}
 
 	@Test
