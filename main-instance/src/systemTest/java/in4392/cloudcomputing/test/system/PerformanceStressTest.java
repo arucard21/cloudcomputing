@@ -39,7 +39,7 @@ import in4392.cloudcomputing.maininstance.InstanceMetrics;
  */
 public class PerformanceStressTest extends SystemTest{
 	
-	public void measureLatencyAndThroughput(int amountOfRequests) throws IOException {
+	public void measureLatencyAndThroughput(int amountOfRequests) throws IOException, InterruptedException {
 		URI getLoadBalancerEntry = UriBuilder.fromUri(loadBalancerURI)
 				.port(8080)
 				.path("load-balancer")
@@ -80,13 +80,14 @@ public class PerformanceStressTest extends SystemTest{
 									}
 								}));				
 			}
+			Thread.sleep(1 * 1000);
 		}
-		while(true) {
+		for (int i = 0; i < 360; i++) {
 			if (ongoingRequests.stream().allMatch((request) -> request.isDone())) {
 				break;
 			}
 			try {
-				Thread.sleep(1 * 1000);
+				Thread.sleep(10 * 1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -113,22 +114,22 @@ public class PerformanceStressTest extends SystemTest{
 	}
 	
 	@Test
-	public void stressTestWithOneRequest() throws IOException {
+	public void stressTestWithOneRequest() throws IOException, InterruptedException {
 		measureLatencyAndThroughput(1);
 	}
 	
 	@Test
-	public void stressTestWithTenRequests() throws IOException {
+	public void stressTestWithTenRequests() throws IOException, InterruptedException {
 		measureLatencyAndThroughput(10);
 	}
 	
 	@Test
-	public void stressTestWithTwentyRequests() throws IOException {
+	public void stressTestWithTwentyRequests() throws IOException, InterruptedException {
 		measureLatencyAndThroughput(20);
 	}
 	
 	@Test
-	public void stressTestWithFiftyRequests() throws IOException {
+	public void stressTestWithFiftyRequests() throws IOException, InterruptedException {
 		measureLatencyAndThroughput(50);
 	}
 }

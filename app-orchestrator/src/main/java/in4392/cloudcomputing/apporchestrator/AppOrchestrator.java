@@ -282,12 +282,14 @@ public class AppOrchestrator {
 				else {
 					deployApplication();
 				}
+				break;
 			default:
 				System.err.println("Unknown type of instance provided, can not be redeployed");
 		}
 		// termination of non-working EC2 instance is not verified
 		// it might still be running in AWS which can be checked in AWS Console
 		EC2.terminateEC2(previousInstanceId);
+		toBeDownscaledInstances.remove(previousInstanceId);
 		applicationTargets.remove(previousInstanceId);
 	}
 	
