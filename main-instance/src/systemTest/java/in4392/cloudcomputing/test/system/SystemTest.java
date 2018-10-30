@@ -40,7 +40,7 @@ public abstract class SystemTest {
 	Path testVideoSmall;
 	
 	@BeforeEach
-	public void initializeTestVariables() throws URISyntaxException {
+	public void initializeTestVariables() throws URISyntaxException, InterruptedException {
 		createClient();
 		setEC2Credentials();
 		getMainInstanceURIFromSystemProperty();
@@ -52,13 +52,14 @@ public abstract class SystemTest {
 		ensureIdleSystem();
 	}
 
-	private void ensureIdleSystem() {
+	private void ensureIdleSystem() throws InterruptedException {
 		URI appOrchestratorDescribeApplicationsURI = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("applications").build();
 		for (int i = 0; i < 30; i++) {
 			applications = client.target(appOrchestratorDescribeApplicationsURI).request().get(new GenericType<Collection<Instance>>(new TypeReference<Collection<Instance>>() {}.getType()));
 			if (applications.size() == 2) {
 				break;
 			}
+			Thread.sleep(60 * 1000);
 		}
 	}
 

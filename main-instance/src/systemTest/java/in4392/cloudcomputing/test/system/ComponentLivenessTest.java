@@ -27,7 +27,11 @@ public class ComponentLivenessTest extends SystemTest{
 		Instance shadow = client.target(mainInstanceDescribeShadowURI).request().get(Instance.class);
 		Assertions.assertNotNull(shadow);
 		
-		URI shadowURI = new URI("http", shadow.getPublicDnsName(), null, null);
+		String applicationHostname = shadow.getPublicDnsName();
+		if (applicationHostname == null || applicationHostname.isEmpty()) {
+			Assertions.fail("The application did not have a public DNS name and is likely not working correctly");
+		}
+		URI shadowURI = new URI("http", applicationHostname, null, null);
 		
 		URI shadowInstanceHealth = UriBuilder.fromUri(shadowURI).port(8080).path("main").path("health").build();
 		int responseStatusCode = client.target(shadowInstanceHealth).request().get().getStatus();
