@@ -59,9 +59,6 @@ public class AppOrchestrator {
 		System.out.println("Starting Load Balancer application");
 		EC2.startDeployedApplication(deployedInstance, "load-balancer");
 		System.out.println("Load Balancer application started");
-		URI loadBalancerURI = new URI("http", getLoadBalancerURI(), null, null);
-		System.out.println(UriBuilder.fromUri(loadBalancerURI).port(8080).path("load-balancer").path("appOrchestratorURI").build());
-		System.out.println(appOrchestrator.getPublicDnsName());
 		waitForApplicationToStart();
 		loadBalancer = deployedInstance;
 		backupLoadBalancer();
@@ -81,12 +78,14 @@ public class AppOrchestrator {
 		Instance applicationInstance = EC2.deployDefaultEC2("User Application", AWS_KEYPAIR_NAME, getApplicationUserData());
 		System.out.println("User Application deployed, waiting for instance to run");
 		EC2.waitForInstanceToRun(applicationInstance.getInstanceId());
-		applicationInstance = EC2.retrieveEC2InstanceWithId(applicationInstance.getInstanceId());
+		Instance deployedInstance = EC2.retrieveEC2InstanceWithId(applicationInstance.getInstanceId());
 		System.out.println("Copying User Application application");
-		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), applicationInstance);
+		EC2.copyApplicationToDeployedInstance(Paths.get("/home/ubuntu/application.jar").toFile(), deployedInstance);
 		System.out.println("Starting User Application application");
-		EC2.startDeployedApplication(applicationInstance, "application");
+		EC2.startDeployedApplication(deployedInstance, "application");
 		System.out.println("User Application application started");
+		waitForApplicationToStart();
+		applicationInstance = deployedInstance;
 		applicationTargets.put(applicationInstance.getInstanceId(), new Target(applicationInstance, 0));
 		backupApplicationIds();
 	}
@@ -356,11 +355,12 @@ public class AppOrchestrator {
 						System.out.println(sanitizedApplicationIds);
 						for(String applicationId: sanitizedApplicationIds) {
 							System.out.println(applicationId);
-							String fixedAppId = applicationId.replace(" ","");
+							String fixedAppId = applicationId.trim();
+							System.out.println(fixedAppId);
 							Instance application = EC2.retrieveEC2InstanceWithId(fixedAppId);
-							Integer amountOfRequests = appOrchestratorRestoreApplicationCounters.getOrDefault(applicationId, 0);
+							Integer amountOfRequests = appOrchestratorRestoreApplicationCounters.getOrDefault(fixedAppId, 0);
 							Target applicationTarget = new Target(application, amountOfRequests);
-							applicationTargets.put(applicationId, applicationTarget);
+							applicationTargets.put(fixedAppId, applicationTarget);
 						}
 					}
 				}

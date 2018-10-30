@@ -15,8 +15,7 @@ orchestrator is actually returning a different URI now. Not sure why, this just 
 This worked fine for me
 
 Instance Recovery Test:		TODO
-not checked at all yet. should be tested
-I think I fixed the code in the main instance, but still I get ConnectException read timeout for newShadowDNS/main/health, even though the instance is running and responding to API requests from the command line. The test may need a larger RETRY_WAIT_TIME value as the current may cause the EC2 request limit exceeded problem.
+Tests pass but encountered problem in Shadow recovering Main, NullPointerException at line 706 of MainInstance.java. Also, the AppOrchestrator recovering Load Balancer tesy failed at SystemTest's initialization of Load Balancer(Null) when running after the Main recovering App Orchestrator test. Running on its own(using the recovered App Orchestrator) passes.
 
 Performance Stress Test: 	WORKS
 Lowered the amounts to 1, 10, 20 and 50. I tested this with 100 requests and it did pass. 

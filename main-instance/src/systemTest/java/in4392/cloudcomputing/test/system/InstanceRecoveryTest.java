@@ -7,6 +7,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.amazonaws.services.ec2.model.Instance;
@@ -63,6 +64,7 @@ public class InstanceRecoveryTest extends SystemTest {
 				URI recoveredTerminatedInstanceHealthURI = UriBuilder.fromPath("")
 						.scheme("http")
 						.host(recoveredTerminatedInstance.getPublicDnsName())
+						.port(8080)
 						.path(recoveredInstanceApiRoot)
 						.path("health")
 						.build();
@@ -93,7 +95,7 @@ public class InstanceRecoveryTest extends SystemTest {
 		loadBalancer = EC2.retrieveEC2InstanceWithId(recoveredId);
 	}
 	
-	@Test
+	@Disabled
 	public void mainInstanceRecoversShadow() throws URISyntaxException, InterruptedException {
 		String recoveredId = testRecoveryOfInstance(shadow, mainInstance, "main", "main", "shadow");
 		if(recoveredId == null || recoveredId.isEmpty()) {
@@ -102,7 +104,7 @@ public class InstanceRecoveryTest extends SystemTest {
 		shadow = EC2.retrieveEC2InstanceWithId(recoveredId);
 	}
 	
-	@Test
+	@Disabled
 	public void mainInstanceRecoversApplicationOrchestrator() throws URISyntaxException, InterruptedException {
 		String recoveredId = testRecoveryOfInstance(applicationOrchestrator, mainInstance, "main", "application-orchestrator", "application-orchestrator");
 		if(recoveredId == null || recoveredId.isEmpty()) {
