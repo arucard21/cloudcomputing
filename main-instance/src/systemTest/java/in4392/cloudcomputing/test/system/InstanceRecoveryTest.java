@@ -27,7 +27,7 @@ public class InstanceRecoveryTest extends SystemTest {
 	 * 
 	 * For now, we wait 20 iterations, which is 20 minutes
 	 */
-	private static int RECOVERY_WAIT_MAX_ITERATIONS = 20;
+	private static int RECOVERY_WAIT_MAX_ITERATIONS = 30;
 	/**
 	 * Amount of time to wait before checking the recovery again, 1 minute
 	 */
