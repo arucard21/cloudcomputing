@@ -66,11 +66,17 @@ public class InstanceRecoveryTest extends SystemTest {
 						.path(recoveredInstanceApiRoot)
 						.path("health")
 						.build();
-				Response healthResponse = client.target(recoveredTerminatedInstanceHealthURI)
-						.request()
-						.get();
-				if(healthResponse.getStatus() == 204) {
-					return recoveredTerminatedInstance.getInstanceId();
+				try {
+					Response healthResponse = client.target(recoveredTerminatedInstanceHealthURI)
+							.request()
+							.get();
+					if(healthResponse.getStatus() == 204) {
+						return recoveredTerminatedInstance.getInstanceId();
+					}
+				}
+				catch (Exception e) {
+					System.err.println("Health request triggered exception but we'll try again");
+					e.printStackTrace();
 				}
 			}
 		}
