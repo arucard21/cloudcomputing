@@ -25,9 +25,9 @@ public class InstanceRecoveryTest extends SystemTest {
 	 * - some time to start the application
 	 * - some time to configure the state of the application 
 	 * 
-	 * For now, we wait 10 iterations, which is 10 minutes
+	 * For now, we wait 20 iterations, which is 20 minutes
 	 */
-	private static int RECOVERY_WAIT_MAX_ITERATIONS = 10;
+	private static int RECOVERY_WAIT_MAX_ITERATIONS = 20;
 	/**
 	 * Amount of time to wait before checking the recovery again, 1 minute
 	 */
@@ -40,10 +40,11 @@ public class InstanceRecoveryTest extends SystemTest {
 			String recoveredInstanceDescribeName) throws URISyntaxException, InterruptedException {
 		String terminatedInstanceId = toBeTerminated.getInstanceId();
 		EC2.terminateEC2(terminatedInstanceId);
-		while(true) {
+		for (int i = 0; i < 60; i++) {
 			if (EC2.retrieveEC2InstanceWithId(terminatedInstanceId).getState().getCode() == EC2.INSTANCE_TERMINATED) {
 				break;
 			}
+			Thread.sleep(60 * 1000);
 		}
 		for (int i = 0; i < RECOVERY_WAIT_MAX_ITERATIONS; i++) {
 			Thread.sleep(RECOVERY_WAIT_ITERATION);
@@ -72,7 +73,6 @@ public class InstanceRecoveryTest extends SystemTest {
 					return recoveredTerminatedInstance.getInstanceId();
 				}
 			}
-			Thread.sleep(100);
 		}
 		Assertions.fail("The instance did not recover within an acceptable amount of time");
 		return null;
