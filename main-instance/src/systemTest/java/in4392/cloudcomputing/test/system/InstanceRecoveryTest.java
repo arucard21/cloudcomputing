@@ -7,7 +7,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.amazonaws.services.ec2.model.Instance;
@@ -112,7 +111,7 @@ public class InstanceRecoveryTest extends SystemTest {
 		}
 		applicationOrchestrator = EC2.retrieveEC2InstanceWithId(recoveredId);
 		
-		// added some wait befor the method returns
+		// added some wait before the method returns
 		Thread.sleep(5 * 60 *1000);
 	}
 
@@ -122,7 +121,7 @@ public class InstanceRecoveryTest extends SystemTest {
 		if(recoveredId == null || recoveredId.isEmpty()) {
 			Assertions.fail("The main instance could not be recovered");
 		}
-		System.setProperty("instance.url", recoveredId);
 		mainInstance = EC2.retrieveEC2InstanceWithId(recoveredId);
+		System.setProperty("instance.url", mainInstance.getPublicDnsName());
 	}
 }
