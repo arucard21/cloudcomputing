@@ -232,10 +232,10 @@ public class MainInstance {
 		mainInstanceRestoreState.put(INSTANCE_TYPE_MAIN, deployedInstance.getInstanceId());
 		sendShadowIdFromRestoreStateToMainInstance(deployedInstance);
 		sendApplicationOrchestratorIdFromRestoreStateToMainInstance(deployedInstance);
-		sendMainInstanceIdToApplicationOrchestratorFromShadow();
 		sendAppOrchestratorRestoreStateToMainInstance(deployedInstance);
 		sendAppOrchestratorApplicationCountersToMainInstance(deployedInstance);
 		sendLoadBalancerIdFromRestoreState(deployedInstance, API_ROOT_MAIN);
+		sendMainInstanceIdToApplicationOrchestratorFromShadow();
 		startInstance(deployedInstance, API_ROOT_MAIN);
 		mainInstance = deployedInstance;
 		System.out.println("Main Instance application started");
@@ -293,8 +293,8 @@ public class MainInstance {
 		}
 		mainInstanceRestoreState.put(INSTANCE_TYPE_APP_ORCHESTRATOR, deployedInstance.getInstanceId());
 		sendMainInstanceIdToApplicationOrchestrator(deployedInstance);
-		setRestoreIdForAppOrchestrator(deployedInstance.getInstanceId());
-		sendApplicationOrchestratorIdFromRestoreStateToShadow(deployedInstance);
+		//setRestoreIdForAppOrchestrator(deployedInstance.getInstanceId());
+		sendApplicationOrchestratorIdFromRestoreStateToShadow(shadow);
 		startInstance(deployedInstance, API_ROOT_APPLICATION_ORCHESTRATOR);
 		appOrchestrator = deployedInstance;
 		System.out.println("App Orchestrator started");
@@ -474,6 +474,8 @@ public class MainInstance {
 	} 
 	
 	private static void sendMainInstanceIdToApplicationOrchestratorFromShadow() throws URISyntaxException {
+		System.out.println(mainInstanceRestoreState.get(INSTANCE_TYPE_APP_ORCHESTRATOR));
+		System.out.println(EC2.retrieveEC2InstanceWithId(mainInstanceRestoreState.get(INSTANCE_TYPE_APP_ORCHESTRATOR)).getPublicDnsName());
         URI appOrchestratorURI = new URI("http", EC2.retrieveEC2InstanceWithId(mainInstanceRestoreState.get(INSTANCE_TYPE_APP_ORCHESTRATOR)).getPublicDnsName(), null, null);
         sendMainInstanceIdToApplicationOrchestrator(appOrchestratorURI);
 	}
@@ -662,7 +664,9 @@ public class MainInstance {
 
 	public static void setRestoreIdForShadow(String shadowId) {
 		mainInstanceRestoreState.put(INSTANCE_TYPE_SHADOW, shadowId);
-		shadow = EC2.retrieveEC2InstanceWithId(shadowId);
+		if (isShadow) {
+			shadow = EC2.retrieveEC2InstanceWithId(shadowId);
+		}
 	}
 
 	public static void setBackupApplicationCounter(String applicationId, int counter) {
