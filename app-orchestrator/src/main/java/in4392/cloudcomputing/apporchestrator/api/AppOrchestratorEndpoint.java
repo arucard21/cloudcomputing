@@ -45,7 +45,12 @@ public class AppOrchestratorEndpoint {
 	@Path("health")
 	@GET
 	public Response healthCheck() {
-		return Response.noContent().build();
+		if (AppOrchestrator.isAlive() && AppOrchestrator.isStarted()) {
+			return Response.noContent().build();
+		}
+		else {
+			return Response.serverError().build();
+		}
 	}
 	
 	/**

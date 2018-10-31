@@ -38,7 +38,7 @@ public class MainInstanceEndpoint {
 	@Path("health")
 	@GET
 	public Response healthCheck() {
-		if (MainInstance.isAlive()) {
+		if (MainInstance.isAlive() && MainInstance.isStarted()) {
 			return Response.noContent().build();
 		}
 		else {
