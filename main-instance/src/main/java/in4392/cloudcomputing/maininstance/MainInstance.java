@@ -235,6 +235,7 @@ public class MainInstance {
 		sendMainInstanceIdToApplicationOrchestratorFromShadow();
 		sendAppOrchestratorRestoreStateToMainInstance(deployedInstance);
 		sendAppOrchestratorApplicationCountersToMainInstance(deployedInstance);
+		sendLoadBalancerIdFromRestoreState(deployedInstance, API_ROOT_MAIN);
 		startInstance(deployedInstance, API_ROOT_MAIN);
 		mainInstance = deployedInstance;
 		System.out.println("Main Instance application started");
@@ -257,13 +258,13 @@ public class MainInstance {
 			sendApplicationOrchestratorIdFromRestoreStateToShadow(deployedInstance);
 		}
 		if (appOrchestratorRestoreState.containsKey(INSTANCE_TYPE_APPLICATIONS)) {
-			sendApplicationIdsFromRestoreState(deployedInstance);
+			sendApplicationIdsFromRestoreState(deployedInstance, API_ROOT_MAIN);
 		}
 		if (appOrchestratorRestoreApplicationCounters != null && !appOrchestratorRestoreApplicationCounters.isEmpty()) {
-			sendApplicationCountersFromRestoreState(deployedInstance);
+			sendApplicationCountersFromRestoreState(deployedInstance, API_ROOT_MAIN);
 		}
 		if (appOrchestratorRestoreState.containsKey(INSTANCE_TYPE_LOAD_BALANCER)) {
-			sendLoadBalancerIdFromRestoreStateToApplicationOrchestrator(deployedInstance);
+			sendLoadBalancerIdFromRestoreState(deployedInstance,API_ROOT_MAIN);
 		}
 		startInstance(deployedInstance, API_ROOT_MAIN);
 		shadow = deployedInstance;
@@ -282,13 +283,13 @@ public class MainInstance {
 		waitForApplicationToStart();
 		uploadCredentials(deployedInstance, "application-orchestrator");
 		if (appOrchestratorRestoreState.containsKey(INSTANCE_TYPE_LOAD_BALANCER)) {
-			sendLoadBalancerIdFromRestoreStateToApplicationOrchestrator(deployedInstance);
+			sendLoadBalancerIdFromRestoreState(deployedInstance,API_ROOT_APPLICATION_ORCHESTRATOR);
 		}
 		if (appOrchestratorRestoreState.containsKey(INSTANCE_TYPE_APPLICATIONS)) {
-			sendApplicationIdsFromRestoreState(deployedInstance);
+			sendApplicationIdsFromRestoreState(deployedInstance, API_ROOT_APPLICATION_ORCHESTRATOR);
 		}
 		if (appOrchestratorRestoreApplicationCounters != null && !appOrchestratorRestoreApplicationCounters.isEmpty()) {
-			sendApplicationCountersFromRestoreState(deployedInstance);
+			sendApplicationCountersFromRestoreState(deployedInstance, API_ROOT_APPLICATION_ORCHESTRATOR);
 		}
 		mainInstanceRestoreState.put(INSTANCE_TYPE_APP_ORCHESTRATOR, deployedInstance.getInstanceId());
 		sendMainInstanceIdToApplicationOrchestrator(deployedInstance);
@@ -416,6 +417,7 @@ public class MainInstance {
 	
 	public static void setRestoreIdForAppOrchestrator(String appOrchestratorId) {
 		mainInstanceRestoreState.put(INSTANCE_TYPE_APP_ORCHESTRATOR, appOrchestratorId);
+		appOrchestrator = EC2.retrieveEC2InstanceWithId(appOrchestratorId);
 	}
 	
 	private static void waitForApplicationToStart() {
@@ -491,10 +493,10 @@ public class MainInstance {
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
 	}
 	
-	private static void sendLoadBalancerIdFromRestoreStateToApplicationOrchestrator(Instance instance) throws URISyntaxException {
+	private static void sendLoadBalancerIdFromRestoreState(Instance instance, String API_PATH) throws URISyntaxException {
 		URI appOrchestratorURI = new URI("http", instance.getPublicDnsName(), null, null);
 		URI backupURI = UriBuilder.fromUri(appOrchestratorURI).port(8080)
-				.path(API_ROOT_APPLICATION_ORCHESTRATOR)
+				.path(API_PATH)
 				.path("backup")
 				.path("load-balancer")
 				.queryParam("loadBalancerId", appOrchestratorRestoreState.get(INSTANCE_TYPE_LOAD_BALANCER).get(0))
@@ -502,10 +504,10 @@ public class MainInstance {
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
 	}
 	
-	private static void sendApplicationIdsFromRestoreState(Instance instance) throws URISyntaxException {
+	private static void sendApplicationIdsFromRestoreState(Instance instance, String API_PATH) throws URISyntaxException {
 		URI appOrchestratorURI = new URI("http", instance.getPublicDnsName(), null, null);
 		URI backupURI = UriBuilder.fromUri(appOrchestratorURI).port(8080)
-				.path(API_ROOT_APPLICATION_ORCHESTRATOR)
+				.path(API_PATH)
 				.path("backup")
 				.path("applications")
 				.queryParam("applicationIds", appOrchestratorRestoreState.get(INSTANCE_TYPE_APPLICATIONS))
@@ -513,11 +515,11 @@ public class MainInstance {
 		ClientBuilder.newClient().register(JacksonJsonProvider.class).target(backupURI).request().get();
 	}
 	
-	private static void sendApplicationCountersFromRestoreState(Instance instance) throws URISyntaxException {
+	private static void sendApplicationCountersFromRestoreState(Instance instance, String API_PATH) throws URISyntaxException {
 		URI appOrchestratorURI = new URI("http", instance.getPublicDnsName(), null, null);
 		for (Entry<String, Integer> entry : appOrchestratorRestoreApplicationCounters.entrySet()) {			
 			URI backupURI = UriBuilder.fromUri(appOrchestratorURI).port(8080)
-					.path(API_ROOT_APPLICATION_ORCHESTRATOR)
+					.path(API_PATH)
 					.path("backup")
 					.path("application-counter")
 					.queryParam("applicationId", entry.getKey())
@@ -649,7 +651,6 @@ public class MainInstance {
 
 	public static void setRestoreIdForLoadBalancer(String loadBalancerId) {
 		appOrchestratorRestoreState.put(INSTANCE_TYPE_LOAD_BALANCER, Arrays.asList(loadBalancerId));
-		
 	}
 
 	public static void setRestoreIdsForApplications(List<String> applicationIds) {
@@ -661,6 +662,7 @@ public class MainInstance {
 
 	public static void setRestoreIdForShadow(String shadowId) {
 		mainInstanceRestoreState.put(INSTANCE_TYPE_SHADOW, shadowId);
+		shadow = EC2.retrieveEC2InstanceWithId(shadowId);
 	}
 
 	public static void setBackupApplicationCounter(String applicationId, int counter) {
