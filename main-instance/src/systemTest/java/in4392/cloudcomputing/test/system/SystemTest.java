@@ -73,7 +73,12 @@ public abstract class SystemTest {
 		URI appOrchestratorDescribeApplicationsURI = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("applications").build();
 		for (int i = 0; i < 30; i++) {
 			applications = client.target(appOrchestratorDescribeApplicationsURI).request().get(new GenericType<Collection<Instance>>(new TypeReference<Collection<Instance>>() {}.getType()));
-			Thread.sleep(60 * 1000);
+			if (applications == null) {				
+				Thread.sleep(60 * 1000);
+			}
+			else {
+				break;
+			}
 		}
 	}
 
@@ -81,7 +86,12 @@ public abstract class SystemTest {
 		URI appOrchestratorDescribeLoadBalancerURI = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("load-balancer").build();
 		for (int i = 0; i < 30; i++) {
 			loadBalancer = client.target(appOrchestratorDescribeLoadBalancerURI).request().get(Instance.class);
-			Thread.sleep(60 * 1000);
+			if (loadBalancer == null) {				
+				Thread.sleep(60 * 1000);
+			}
+			else {
+				break;
+			}
 		}
 		Assertions.assertNotNull(loadBalancer);
 		loadBalancerURI = new URI("http", loadBalancer.getPublicDnsName(), null, null);
@@ -91,7 +101,12 @@ public abstract class SystemTest {
 		URI mainInstanceDescribeApplicationOrchestratorURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("application-orchestrator").build();
 		for (int i = 0; i < 30; i++) {
 			applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
-			Thread.sleep(60 * 1000);
+			if (applicationOrchestrator == null) {				
+				Thread.sleep(60 * 1000);
+			}
+			else {
+				break;
+			}
 		}
 		Assertions.assertNotNull(applicationOrchestrator);
 		
@@ -102,7 +117,12 @@ public abstract class SystemTest {
 		URI mainInstanceDescribeShadowURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("shadow").build();
 		for (int i = 0; i < 30; i++) {
 			shadow = client.target(mainInstanceDescribeShadowURI).request().get(Instance.class);
-			Thread.sleep(60 * 1000);
+			if (shadow == null) {				
+				Thread.sleep(60 * 1000);
+			}
+			else {
+				break;
+			}
 		}
 		Assertions.assertNotNull(shadow);
 		
@@ -114,7 +134,12 @@ public abstract class SystemTest {
 		URI mainInstanceDescribeMainInstanceURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("main").build();
 		for (int i = 0; i < 30; i++) {
 			mainInstance = client.target(mainInstanceDescribeMainInstanceURI).request().get(Instance.class);
-			Thread.sleep(60 * 1000);
+			if (mainInstance == null) {				
+				Thread.sleep(60 * 1000);
+			}
+			else {
+				break;
+			}
 		}
 	}
 
