@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - EndToEndTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>EndToEndTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/in4392.cloudcomputing.test.system.html">in4392.cloudcomputing.test.system</a> &gt; EndToEndTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">2</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">3m35.49s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">video_shouldBeProcessedAndReturned_whenEverythingWorksCorrectly()</td>
+<td class="success">32.399s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">video_shouldBeProcessedAndReturned_whenTheProcessingApplicationInstanceFails()</td>
+<td class="success">3m3.09s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>21:42:47.065 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.066 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.066 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.070 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.070 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.070 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.076 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:42:47.077 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/main}WebClient.http-conduit' has been (re)configured for plain http.
+21:42:47.077 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/main}WebClient.http-conduit'
+21:42:47.077 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/main}WebClient.http-conduit'
+21:42:47.078 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/main}WebClient.http-conduit' has been configured for plain http.
+21:42:47.078 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@4ab14499
+21:42:47.078 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@302a53d7 to phase prepare-send
+21:42:47.078 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@302a53d7 to phase prepare-send
+21:42:47.078 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@62c2e938 to phase pre-logical
+21:42:47.078 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@1b7250b9 to phase write
+21:42:47.078 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@5ba74ac2 was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:42:47.078 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@62c2e938
+21:42:47.078 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@302a53d7
+21:42:47.079 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@39711e8a to phase prepare-send-ending
+21:42:47.079 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@5ba74ac2 was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:42:47.079 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@1b7250b9
+21:42:47.079 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@39711e8a
+21:42:47.079 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:42:47.079 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/main}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:42:47.138 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@4c0fbbb5 to phase unmarshal
+21:42:47.138 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@4571cd15 to phase pre-protocol-frontend
+21:42:47.139 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@24e16e23 was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:42:47.139 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@4571cd15
+21:42:47.139 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@4c0fbbb5
+21:42:47.154 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.154 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.154 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.155 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.155 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.155 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.156 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:42:47.157 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/shadow}WebClient.http-conduit' has been (re)configured for plain http.
+21:42:47.157 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/shadow}WebClient.http-conduit'
+21:42:47.157 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/shadow}WebClient.http-conduit'
+21:42:47.157 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/shadow}WebClient.http-conduit' has been configured for plain http.
+21:42:47.157 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@1b51c2ee
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@4f8bd97c to phase prepare-send
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@4f8bd97c to phase prepare-send
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@790167e8 to phase pre-logical
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@11dac468 to phase write
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@489220f was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@790167e8
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@4f8bd97c
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@15584bdb to phase prepare-send-ending
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@489220f was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@11dac468
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@15584bdb
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:42:47.158 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/shadow}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:42:47.195 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@671450bf to phase unmarshal
+21:42:47.195 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@20aa21b1 to phase pre-protocol-frontend
+21:42:47.195 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@6dfee6f1 was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:42:47.195 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@20aa21b1
+21:42:47.195 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@671450bf
+21:42:47.197 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.197 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.197 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.198 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.198 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.198 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.199 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:42:47.200 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/application-orchestrator}WebClient.http-conduit' has been (re)configured for plain http.
+21:42:47.201 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/application-orchestrator}WebClient.http-conduit'
+21:42:47.201 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/application-orchestrator}WebClient.http-conduit'
+21:42:47.201 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/application-orchestrator}WebClient.http-conduit' has been configured for plain http.
+21:42:47.201 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@6671c153
+21:42:47.201 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@42ef0b73 to phase prepare-send
+21:42:47.201 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@42ef0b73 to phase prepare-send
+21:42:47.201 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@2e74cb52 to phase pre-logical
+21:42:47.201 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@47cea43e to phase write
+21:42:47.202 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@2f5d8ecd was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:42:47.202 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@2e74cb52
+21:42:47.202 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@42ef0b73
+21:42:47.202 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@1553bcc6 to phase prepare-send-ending
+21:42:47.202 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@2f5d8ecd was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:42:47.202 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@47cea43e
+21:42:47.202 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@1553bcc6
+21:42:47.202 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:42:47.202 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/application-orchestrator}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:42:47.243 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@1df5cb65 to phase unmarshal
+21:42:47.244 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@2f2863b1 to phase pre-protocol-frontend
+21:42:47.244 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@6c40bb7f was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:42:47.244 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@2f2863b1
+21:42:47.245 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@1df5cb65
+21:42:47.247 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.247 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.247 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.248 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.248 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.248 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.250 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:42:47.251 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/load-balancer}WebClient.http-conduit' has been (re)configured for plain http.
+21:42:47.251 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/load-balancer}WebClient.http-conduit'
+21:42:47.252 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/load-balancer}WebClient.http-conduit'
+21:42:47.252 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/load-balancer}WebClient.http-conduit' has been configured for plain http.
+21:42:47.252 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@139f133f
+21:42:47.252 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@6552db4a to phase prepare-send
+21:42:47.252 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@6552db4a to phase prepare-send
+21:42:47.252 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@67b45159 to phase pre-logical
+21:42:47.253 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@76e819cb to phase write
+21:42:47.253 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@1d85eac2 was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:42:47.253 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@67b45159
+21:42:47.253 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@6552db4a
+21:42:47.253 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@6e7efab3 to phase prepare-send-ending
+21:42:47.253 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@1d85eac2 was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:42:47.253 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@76e819cb
+21:42:47.253 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@6e7efab3
+21:42:47.254 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:42:47.254 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/load-balancer}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:42:47.297 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@2b8540bc to phase unmarshal
+21:42:47.298 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@1d152246 to phase pre-protocol-frontend
+21:42:47.298 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@2f7418dc was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:42:47.298 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@1d152246
+21:42:47.298 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@2b8540bc
+21:42:47.300 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.300 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.300 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.300 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.300 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.300 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.302 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:42:47.303 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit' has been (re)configured for plain http.
+21:42:47.303 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'
+21:42:47.303 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'
+21:42:47.303 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit' has been configured for plain http.
+21:42:47.304 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@6bb0b93c
+21:42:47.304 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@69904d45 to phase prepare-send
+21:42:47.304 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@69904d45 to phase prepare-send
+21:42:47.304 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@5eddf987 to phase pre-logical
+21:42:47.304 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@4b2ada6c to phase write
+21:42:47.304 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@25bde36c was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:42:47.304 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@5eddf987
+21:42:47.304 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@69904d45
+21:42:47.305 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@4eac78fb to phase prepare-send-ending
+21:42:47.305 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@25bde36c was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:42:47.305 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@4b2ada6c
+21:42:47.305 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@4eac78fb
+21:42:47.305 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:42:47.305 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:42:47.348 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@7f0cb168 to phase unmarshal
+21:42:47.348 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@6268fd5f to phase pre-protocol-frontend
+21:42:47.348 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@2804c4fd was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:42:47.348 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@6268fd5f
+21:42:47.348 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@7f0cb168
+21:42:47.351 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.351 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.351 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.351 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.352 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.352 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.353 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:42:47.354 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit' has been (re)configured for plain http.
+21:42:47.354 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'
+21:42:47.354 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'
+21:42:47.354 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit' has been configured for plain http.
+21:42:47.354 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@624690a3
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@7cab0984 to phase prepare-send
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@7cab0984 to phase prepare-send
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@70ee2496 to phase pre-logical
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@8fbc12c to phase write
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@5e6e8b18 was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@70ee2496
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@7cab0984
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@7a2d4e78 to phase prepare-send-ending
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@5e6e8b18 was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@8fbc12c
+21:42:47.355 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@7a2d4e78
+21:42:47.356 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:42:47.356 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:42:47.395 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@7b660f3f to phase unmarshal
+21:42:47.396 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@2d4253de to phase pre-protocol-frontend
+21:42:47.396 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@75e3b25 was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:42:47.396 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@2d4253de
+21:42:47.396 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@7b660f3f
+21:42:47.398 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.399 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.399 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.399 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.399 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.399 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:42:47.401 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:42:47.402 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit' has been (re)configured for plain http.
+21:42:47.402 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit'
+21:42:47.402 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit'
+21:42:47.402 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit' has been configured for plain http.
+21:42:47.402 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@24b2cc29
+21:42:47.403 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@10f32d51 to phase prepare-send
+21:42:47.403 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@10f32d51 to phase prepare-send
+21:42:47.403 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@2d7162dc to phase pre-logical
+21:42:47.403 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@7b0b24af to phase write
+21:42:47.403 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@49ea6c63 was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:42:47.403 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@2d7162dc
+21:42:47.403 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@10f32d51
+21:42:47.404 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@407a49aa to phase prepare-send-ending
+21:42:47.404 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@49ea6c63 was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:42:47.404 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@7b0b24af
+21:42:47.405 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Content-Type: application/octet-stream
+21:42:47.405 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:42:47.405 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:42:47.443 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Sending POST Message with Headers to http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry Conduit :{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit
+
+21:42:51.837 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@407a49aa
+21:43:18.443 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@66bbb4fb to phase unmarshal
+21:43:18.443 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@4437cadf to phase pre-protocol-frontend
+21:43:18.443 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@5e242f4e was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:43:18.443 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@4437cadf
+21:43:18.443 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@66bbb4fb
+21:43:19.462 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.463 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.463 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.463 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.463 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.464 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.465 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:43:19.466 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/main}WebClient.http-conduit' has been (re)configured for plain http.
+21:43:19.466 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/main}WebClient.http-conduit'
+21:43:19.466 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/main}WebClient.http-conduit'
+21:43:19.467 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/main}WebClient.http-conduit' has been configured for plain http.
+21:43:19.467 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@7f1e0bd1
+21:43:19.467 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@284f154a to phase prepare-send
+21:43:19.468 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@284f154a to phase prepare-send
+21:43:19.468 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@e21c0d8 to phase pre-logical
+21:43:19.468 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@61b5c696 to phase write
+21:43:19.468 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@6efa09f2 was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:43:19.469 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@e21c0d8
+21:43:19.469 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@284f154a
+21:43:19.469 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@3ecfa422 to phase prepare-send-ending
+21:43:19.469 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@6efa09f2 was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:43:19.470 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@61b5c696
+21:43:19.470 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@3ecfa422
+21:43:19.470 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:43:19.471 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/main}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:43:19.522 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@3ee89423 to phase unmarshal
+21:43:19.523 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@71a6741e to phase pre-protocol-frontend
+21:43:19.523 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@4fad5641 was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:43:19.523 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@71a6741e
+21:43:19.523 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@3ee89423
+21:43:19.550 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.550 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.550 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.551 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.551 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.551 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.552 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:43:19.553 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/shadow}WebClient.http-conduit' has been (re)configured for plain http.
+21:43:19.554 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/shadow}WebClient.http-conduit'
+21:43:19.554 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/shadow}WebClient.http-conduit'
+21:43:19.554 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/shadow}WebClient.http-conduit' has been configured for plain http.
+21:43:19.554 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@4a6a9af2
+21:43:19.554 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@1b1f12d1 to phase prepare-send
+21:43:19.554 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@1b1f12d1 to phase prepare-send
+21:43:19.554 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@6e2c60d to phase pre-logical
+21:43:19.554 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@7ffe9be0 to phase write
+21:43:19.554 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@61dd33e7 was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:43:19.554 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@6e2c60d
+21:43:19.555 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@1b1f12d1
+21:43:19.555 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@2372c97 to phase prepare-send-ending
+21:43:19.555 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@61dd33e7 was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:43:19.555 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@7ffe9be0
+21:43:19.555 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@2372c97
+21:43:19.555 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:43:19.555 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/shadow}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:43:19.592 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@12f55072 to phase unmarshal
+21:43:19.592 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@19dfe857 to phase pre-protocol-frontend
+21:43:19.592 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@1115a280 was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:43:19.592 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@19dfe857
+21:43:19.592 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@12f55072
+21:43:19.594 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.594 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.594 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.595 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.595 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.595 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.596 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:43:19.597 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/application-orchestrator}WebClient.http-conduit' has been (re)configured for plain http.
+21:43:19.597 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/application-orchestrator}WebClient.http-conduit'
+21:43:19.597 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/application-orchestrator}WebClient.http-conduit'
+21:43:19.597 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/application-orchestrator}WebClient.http-conduit' has been configured for plain http.
+21:43:19.598 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@6a9b8209
+21:43:19.598 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@7ad80be7 to phase prepare-send
+21:43:19.598 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@7ad80be7 to phase prepare-send
+21:43:19.598 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@11d4a15f to phase pre-logical
+21:43:19.598 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@312e5c43 to phase write
+21:43:19.598 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@7130ba5 was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:43:19.598 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@11d4a15f
+21:43:19.598 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@7ad80be7
+21:43:19.599 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@3d2ebf93 to phase prepare-send-ending
+21:43:19.599 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@7130ba5 was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:43:19.599 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@312e5c43
+21:43:19.599 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@3d2ebf93
+21:43:19.599 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:43:19.599 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-109-165.eu-west-3.compute.amazonaws.com:8080/main/instances/application-orchestrator}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:43:19.636 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@9c42f30 to phase unmarshal
+21:43:19.636 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@4acbb60f to phase pre-protocol-frontend
+21:43:19.636 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@551ad2d0 was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:43:19.636 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@4acbb60f
+21:43:19.637 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@9c42f30
+21:43:19.638 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.638 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.638 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.638 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.638 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.638 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.640 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:43:19.641 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/load-balancer}WebClient.http-conduit' has been (re)configured for plain http.
+21:43:19.641 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/load-balancer}WebClient.http-conduit'
+21:43:19.641 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/load-balancer}WebClient.http-conduit'
+21:43:19.656 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/load-balancer}WebClient.http-conduit' has been configured for plain http.
+21:43:19.657 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@2171db32
+21:43:19.657 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@3f8bb728 to phase prepare-send
+21:43:19.657 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@3f8bb728 to phase prepare-send
+21:43:19.657 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@3421282a to phase pre-logical
+21:43:19.658 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@7b42d331 to phase write
+21:43:19.658 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@54c52f20 was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:43:19.658 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@3421282a
+21:43:19.658 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@3f8bb728
+21:43:19.658 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@3695f067 to phase prepare-send-ending
+21:43:19.669 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@54c52f20 was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:43:19.669 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@7b42d331
+21:43:19.669 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@3695f067
+21:43:19.669 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:43:19.669 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/load-balancer}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:43:19.713 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@bc8fee7 to phase unmarshal
+21:43:19.713 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@66fe6ff4 to phase pre-protocol-frontend
+21:43:19.714 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@1bbff024 was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:43:19.714 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@66fe6ff4
+21:43:19.714 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@bc8fee7
+21:43:19.716 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.716 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.716 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.716 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.716 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.716 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.718 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:43:19.719 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit' has been (re)configured for plain http.
+21:43:19.719 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'
+21:43:19.719 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'
+21:43:19.719 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit' has been configured for plain http.
+21:43:19.719 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@57ddef51
+21:43:19.720 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@13bc9837 to phase prepare-send
+21:43:19.720 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@13bc9837 to phase prepare-send
+21:43:19.720 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@3ccd9444 to phase pre-logical
+21:43:19.720 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@513238d7 to phase write
+21:43:19.720 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@692de2c7 was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:43:19.720 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@3ccd9444
+21:43:19.720 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@13bc9837
+21:43:19.720 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@1ea7b2f5 to phase prepare-send-ending
+21:43:19.721 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@692de2c7 was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:43:19.721 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@513238d7
+21:43:19.721 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@1ea7b2f5
+21:43:19.721 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:43:19.721 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:43:19.773 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@4e187ad1 to phase unmarshal
+21:43:19.773 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@eac0745 to phase pre-protocol-frontend
+21:43:19.774 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@891e78d was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:43:19.774 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@eac0745
+21:43:19.774 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@4e187ad1
+21:43:19.777 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.777 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.777 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.777 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.777 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.777 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.779 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:43:19.780 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit' has been (re)configured for plain http.
+21:43:19.780 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'
+21:43:19.780 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'
+21:43:19.780 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit' has been configured for plain http.
+21:43:19.780 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@7a66a3d2
+21:43:19.781 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@22f86787 to phase prepare-send
+21:43:19.781 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@22f86787 to phase prepare-send
+21:43:19.781 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@1967691a to phase pre-logical
+21:43:19.781 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@257c33e7 to phase write
+21:43:19.781 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@6acb7ca9 was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:43:19.781 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@1967691a
+21:43:19.781 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@22f86787
+21:43:19.781 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@beefa28 to phase prepare-send-ending
+21:43:19.782 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@6acb7ca9 was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:43:19.782 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@257c33e7
+21:43:19.782 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@beefa28
+21:43:19.782 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:43:19.782 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-111-220.eu-west-3.compute.amazonaws.com:8080/application-orchestrator/instances/applications}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:43:19.819 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@29e36df6 to phase unmarshal
+21:43:19.819 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@6dc48026 to phase pre-protocol-frontend
+21:43:19.819 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@5c5b8703 was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:43:19.819 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@6dc48026
+21:43:19.819 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@29e36df6
+21:43:19.823 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.823 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.823 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.823 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.823 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.823 [Test worker] DEBUG org.apache.cxf.jaxrs.model.AbstractResourceInfo - Injecting a custom context org.apache.cxf.jaxrs.ext.MessageContext, ContextProvider is required for this type
+21:43:19.825 [Test worker] DEBUG org.apache.cxf.jaxrs.provider.ProviderFactory - Problem with creating the default provider org.apache.cxf.jaxrs.provider.json.JSONProvider: org.apache.cxf.jaxrs.provider.json.JSONProvider
+21:43:19.826 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit' has been (re)configured for plain http.
+21:43:19.826 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider configured for Conduit '{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit'
+21:43:19.826 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Auth Supplier configured for Conduit '{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit'
+21:43:19.826 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Conduit '{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit' has been configured for plain http.
+21:43:19.826 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - registering incoming observer: org.apache.cxf.jaxrs.client.ClientMessageObserver@546fc4c
+21:43:19.826 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@6cf3c8b7 to phase prepare-send
+21:43:19.826 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@6cf3c8b7 to phase prepare-send
+21:43:19.826 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@1ef7612e to phase pre-logical
+21:43:19.827 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@13f059c0 to phase write
+21:43:19.827 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@2166736e was created. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+
+21:43:19.827 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientRequestFilterInterceptor@1ef7612e
+21:43:19.827 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor@6cf3c8b7
+21:43:19.827 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@53a2a185 to phase prepare-send-ending
+21:43:19.827 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@2166736e was modified. Current flow:
+  pre-logical [ClientRequestFilterInterceptor]
+  prepare-send [MessageSenderInterceptor]
+  write [BodyWriter]
+  prepare-send-ending [MessageSenderEndingInterceptor]
+
+21:43:19.827 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$BodyWriter@13f059c0
+21:43:19.828 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Content-Type: application/octet-stream
+21:43:19.828 [Test worker] DEBUG org.apache.cxf.transport.http.Headers - Accept: */*
+21:43:19.828 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - No Trust Decider for Conduit '{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit'. An affirmative Trust Decision is assumed.
+21:43:19.829 [Test worker] DEBUG org.apache.cxf.transport.http.HTTPConduit - Sending POST Message with Headers to http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry?delayApplication=60&amp;failApplication=true Conduit :{http://ec2-35-180-92-50.eu-west-3.compute.amazonaws.com:8080/load-balancer/entry}WebClient.http-conduit
+
+21:43:24.210 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.interceptor.MessageSenderInterceptor$MessageSenderEndingInterceptor@53a2a185
+21:46:22.111 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@767954ce to phase unmarshal
+21:46:22.111 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Adding interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@67562d98 to phase pre-protocol-frontend
+21:46:22.112 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Chain org.apache.cxf.phase.PhaseInterceptorChain@7539cf1f was created. Current flow:
+  pre-protocol-frontend [ClientResponseFilterInterceptor]
+  unmarshal [ClientAsyncResponseInterceptor]
+
+21:46:22.112 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.spec.ClientResponseFilterInterceptor@67562d98
+21:46:22.112 [Test worker] DEBUG org.apache.cxf.phase.PhaseInterceptorChain - Invoking handleMessage on interceptor org.apache.cxf.jaxrs.client.WebClient$ClientAsyncResponseInterceptor@767954ce
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 4.10.2</a> at Nov 1, 2018 10:07:32 PM</p>
+</div>
+</div>
+</body>
+</html>
