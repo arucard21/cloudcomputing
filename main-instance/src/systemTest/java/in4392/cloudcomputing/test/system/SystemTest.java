@@ -69,38 +69,53 @@ public abstract class SystemTest {
 		EC2.setCredentials(new BasicAWSCredentials(accessKey, secretKey));
 	}
 
-	private void getApplicationURIsFromAppOrchestrator() {
+	private void getApplicationURIsFromAppOrchestrator() throws InterruptedException {
 		URI appOrchestratorDescribeApplicationsURI = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("applications").build();
-		applications = client.target(appOrchestratorDescribeApplicationsURI).request().get(new GenericType<Collection<Instance>>(new TypeReference<Collection<Instance>>() {}.getType()));
+		for (int i = 0; i < 30; i++) {
+			applications = client.target(appOrchestratorDescribeApplicationsURI).request().get(new GenericType<Collection<Instance>>(new TypeReference<Collection<Instance>>() {}.getType()));
+			Thread.sleep(60 * 1000);
+		}
 	}
 
-	private void getLoadBalancerURIFromAppOrchestrator() throws URISyntaxException {
+	private void getLoadBalancerURIFromAppOrchestrator() throws URISyntaxException, InterruptedException {
 		URI appOrchestratorDescribeLoadBalancerURI = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("load-balancer").build();
-		loadBalancer = client.target(appOrchestratorDescribeLoadBalancerURI).request().get(Instance.class);
+		for (int i = 0; i < 30; i++) {
+			loadBalancer = client.target(appOrchestratorDescribeLoadBalancerURI).request().get(Instance.class);
+			Thread.sleep(60 * 1000);
+		}
 		Assertions.assertNotNull(loadBalancer);
 		loadBalancerURI = new URI("http", loadBalancer.getPublicDnsName(), null, null);
 	}
 
-	private void getApplicationOrchestratorURIFromMainInstance() throws URISyntaxException {
+	private void getApplicationOrchestratorURIFromMainInstance() throws URISyntaxException, InterruptedException {
 		URI mainInstanceDescribeApplicationOrchestratorURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("application-orchestrator").build();
-		applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
+		for (int i = 0; i < 30; i++) {
+			applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
+			Thread.sleep(60 * 1000);
+		}
 		Assertions.assertNotNull(applicationOrchestrator);
 		
 		applicationOrchestratorURI = new URI("http", applicationOrchestrator.getPublicDnsName(), null, null);
 	}
 
-	private void getShadowURIFromMainInstance() throws URISyntaxException {
+	private void getShadowURIFromMainInstance() throws URISyntaxException, InterruptedException {
 		URI mainInstanceDescribeShadowURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("shadow").build();
-		shadow = client.target(mainInstanceDescribeShadowURI).request().get(Instance.class);
+		for (int i = 0; i < 30; i++) {
+			shadow = client.target(mainInstanceDescribeShadowURI).request().get(Instance.class);
+			Thread.sleep(60 * 1000);
+		}
 		Assertions.assertNotNull(shadow);
 		
 		shadowURI = new URI("http", shadow.getPublicDnsName(), null, null);
 	}
 
-	private void getMainInstanceURIFromSystemProperty() throws URISyntaxException {
+	private void getMainInstanceURIFromSystemProperty() throws URISyntaxException, InterruptedException {
 		mainInstanceURI = new URI("http", System.getProperty("instance.url"), null, null);
 		URI mainInstanceDescribeMainInstanceURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("main").build();
-		mainInstance = client.target(mainInstanceDescribeMainInstanceURI).request().get(Instance.class);
+		for (int i = 0; i < 30; i++) {
+			mainInstance = client.target(mainInstanceDescribeMainInstanceURI).request().get(Instance.class);
+			Thread.sleep(60 * 1000);
+		}
 	}
 
 	private void createClient() {
