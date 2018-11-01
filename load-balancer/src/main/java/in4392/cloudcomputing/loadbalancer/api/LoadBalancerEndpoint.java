@@ -36,14 +36,17 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 @Produces(MediaType.APPLICATION_JSON)
 public class LoadBalancerEndpoint {
 	private static final int RETRY_WAIT_TIME = 10000;
-	int index;
-	List<Target> targets = new ArrayList<>();
-	URI appOrchestratorURI;
+	private URI appOrchestratorURI;
 	
 	@Path("health")
 	@GET
 	public Response healthCheck() {
-		return Response.noContent().build();
+		if (appOrchestratorURI == null) {
+			return Response.serverError().build();
+		}
+		else {
+			return Response.noContent().build();
+		}
 	}
 	
 	@Path("log")
