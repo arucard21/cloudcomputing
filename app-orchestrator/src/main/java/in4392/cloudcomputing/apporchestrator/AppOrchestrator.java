@@ -290,6 +290,7 @@ public class AppOrchestrator {
 		EC2.terminateEC2(previousInstanceId);
 		toBeDownscaledInstances.remove(previousInstanceId);
 		applicationTargets.remove(previousInstanceId);
+		backupApplicationIds();
 	}
 	
 	public static String getLoadBalancerURI() throws NoSuchAlgorithmException, IOException {
@@ -380,6 +381,7 @@ public class AppOrchestrator {
 				EC2.terminateEC2(instanceId);
 				downscaledInstances.add(instanceId);
 				applicationTargets.remove(instanceId);
+				backupApplicationIds();
 			}
 		}
 		// Avoid ConcurrentModificiation Exception
