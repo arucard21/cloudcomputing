@@ -667,7 +667,7 @@ public class MainInstance {
 
 	public static void setRestoreIdForShadow(String shadowId) {
 		mainInstanceRestoreState.put(INSTANCE_TYPE_SHADOW, shadowId);
-		if (isShadow) {
+		if (!isShadow) {
 			shadow = EC2.retrieveEC2InstanceWithId(shadowId);
 		}
 	}

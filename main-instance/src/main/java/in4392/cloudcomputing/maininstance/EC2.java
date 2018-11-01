@@ -2,6 +2,7 @@ package in4392.cloudcomputing.maininstance;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -44,6 +45,7 @@ public class EC2 {
 	private static final String AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804 = "ami-0a2ca21adb4a04084";
 	private static final String ERROR_INCORRECTLY_DEPLOYED = "The newly deployed EC2 instance did not start correctly. You may need to manually verify and correct this";
 	private static final String ERROR_STATUS_CHECKS_NOT_OK = "The newly deployed EC2 instance is running but some of the status checks may not have passed";
+	private static final String ERROR_JAVA_NOT_INSTALLED = "The newly deployed EC2 instance is running but Java is not installed";
 	public static final int INSTANCE_PENDING = 0;
 	public static final int INSTANCE_RUNNING = 16;
 	public static final int INSTANCE_SHUTTING_DOWN = 32;
@@ -81,7 +83,7 @@ public class EC2 {
 				.getInstances().get(0);
 	}
 	
-	public static Instance deployDefaultEC2(String usageTag, String keyPairName) throws NoSuchAlgorithmException {
+	public static Instance deployDefaultEC2(String usageTag, String keyPairName) throws NoSuchAlgorithmException, IOException {
 		return deployDefaultEC2(usageTag, keyPairName, getUserData());
 	}
 
@@ -93,7 +95,7 @@ public class EC2 {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws IOException if the userdata script can not be read
 	 */
-	public static Instance deployDefaultEC2(String usageTag, String keyPairName, String userData) throws NoSuchAlgorithmException {
+	public static Instance deployDefaultEC2(String usageTag, String keyPairName, String userData) throws NoSuchAlgorithmException, IOException {
 		ensureJavaKeyPairExists();
 		RunInstancesRequest runInstancesRequest = new RunInstancesRequest(AMI_ID_EU_WEST_3_UBUNTU_SERVER_1804, 1, 1)
 				.withInstanceType(InstanceType.T2Micro)
@@ -158,7 +160,7 @@ public class EC2 {
 		return Base64.getEncoder().encodeToString(installScript.getBytes());
 	}
 
-	public static void waitForInstanceToRun(String deployedInstanceId) {
+	public static void waitForInstanceToRun(String deployedInstanceId) throws IOException {
 		for (int i = 0; i < 6; i++) {
 			try {
 				Thread.sleep(10000);
@@ -171,9 +173,11 @@ public class EC2 {
 			}
 			if (state == INSTANCE_RUNNING) {
 				// check status checks are completed as well
-				boolean passed = verifyStatusChecksPassed(deployedInstanceId);
+				//boolean passed = verifyStatusChecksPassed(deployedInstanceId);
+				boolean passed = checkJavaInstalled(deployedInstanceId);
 				if (!passed) {
-				        throw new IllegalStateException(ERROR_STATUS_CHECKS_NOT_OK);
+				//	throw new IllegalStateException(ERROR_STATUS_CHECKS_NOT_OK);
+					throw new IllegalStateException(ERROR_JAVA_NOT_INSTALLED);
 				}
 				break;
 			}
@@ -242,6 +246,40 @@ public class EC2 {
 			}
 		}
 	}
+	
+	
+	public static boolean checkJavaInstalled(String instance) throws IOException {
+		boolean passed = false;
+		// wait up to 2.5 minutes for Java to be installed
+		for (int j = 0; j < 20; j++) {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			try (SSHClient ssh = new SSHClient()){
+				ssh.loadKnownHosts();
+				ssh.addHostKeyVerifier(new PromiscuousVerifier());
+				ssh.connect(EC2.retrieveEC2InstanceWithId(instance).getPublicDnsName());
+				ssh.authPublickey("ubuntu", Arrays.asList(ssh.loadKeys(javaKeyPair)));
+				Command command;
+				String remoteCommand = "java";
+				try(Session session = ssh.startSession()){
+					command = session.exec(remoteCommand);
+				}
+				System.out.println(command.getExitStatus());
+				if (command.getExitStatus() > 0) {
+					System.out.println("Finished");
+					passed = true;
+					break;
+				}
+			} catch (ConnectException e) {
+				continue;
+			}
+		}
+		return passed;
+	}
+	
 	
 	public static AmazonEC2 getClient() {
 		return client;
