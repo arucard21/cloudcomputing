@@ -3,6 +3,7 @@ package in4392.cloudcomputing.test.system;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.UriBuilder;
@@ -40,12 +41,6 @@ public class ComponentLivenessTest extends SystemTest{
 	
 	@Test
 	public void applicationOrchestratorisAlive() throws URISyntaxException {
-		URI mainInstanceDescribeApplicationOrchestratorURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("application-orchestrator").build();
-		Instance applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
-		Assertions.assertNotNull(applicationOrchestrator);
-		
-		URI applicationOrchestratorURI = new URI("http", applicationOrchestrator.getPublicDnsName(), null, null);
-		
 		URI shadowInstanceHealth = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("health").build();
 		int responseStatusCode = client.target(shadowInstanceHealth).request().get().getStatus();
 		Assertions.assertEquals(204, responseStatusCode);
@@ -53,12 +48,6 @@ public class ComponentLivenessTest extends SystemTest{
 	
 	@Test
 	public void loadBalancerisAlive() throws URISyntaxException {
-		URI mainInstanceDescribeApplicationOrchestratorURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("application-orchestrator").build();
-		Instance applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
-		Assertions.assertNotNull(applicationOrchestrator);
-		
-		URI applicationOrchestratorURI = new URI("http", applicationOrchestrator.getPublicDnsName(), null, null);
-		
 		URI appOrchestratorDescribeLoadBalancerURI = UriBuilder.fromUri(applicationOrchestratorURI).port(8080).path("application-orchestrator").path("instances").path("load-balancer").build();
 		Instance loadBalancer = client.target(appOrchestratorDescribeLoadBalancerURI).request().get(Instance.class);
 		Assertions.assertNotNull(loadBalancer);
@@ -70,24 +59,30 @@ public class ComponentLivenessTest extends SystemTest{
 	}
 	
 	@Test
-	public void applicationsAreAlive() throws URISyntaxException {
-		URI mainInstanceDescribeApplicationOrchestratorURI = UriBuilder.fromUri(mainInstanceURI).port(8080).path("main").path("instances").path("application-orchestrator").build();
-		Instance applicationOrchestrator = client.target(mainInstanceDescribeApplicationOrchestratorURI).request().get(Instance.class);
-		Assertions.assertNotNull(applicationOrchestrator);
-		
-		URI applicationOrchestratorURI = new URI("http", applicationOrchestrator.getPublicDnsName(), null, null);
-		
+	public void applicationsAreAlive() throws URISyntaxException, InterruptedException {
 		URI appOrchestratorDescribeApplicationsURI = UriBuilder.fromUri(applicationOrchestratorURI).
 				port(8080)
 				.path("application-orchestrator")
 				.path("instances")
 				.path("applications").build();
-		Collection<Instance> applications = client
-				.target(appOrchestratorDescribeApplicationsURI)
-				.request()
-				.get(
-						new GenericType<Collection<Instance>>(
-								new TypeReference<Collection<Instance>>() {}.getType()));
+		Collection<Instance> applications = null;
+		for (int i = 0; i < 10; i++) {
+			applications = client
+					.target(appOrchestratorDescribeApplicationsURI)
+					.request()
+					.get(
+							new GenericType<Collection<Instance>>(
+									new TypeReference<Collection<Instance>>() {}.getType()));
+			int amountOfOutdatedApplications = applications
+					.stream()
+					.filter(instance -> instance.getPublicDnsName() == null || instance.getPublicDnsName().isEmpty())
+					.collect(Collectors.toList())
+					.size();
+			if (amountOfOutdatedApplications == 0) {
+				break;
+			}
+			Thread.sleep(60 * 1000);
+		}
 		Assertions.assertNotNull(applications);
 		Assertions.assertFalse(applications.isEmpty());
 		for (Instance application : applications) {
