@@ -653,6 +653,9 @@ public class MainInstance {
 
 	public static void setRestoreIdForLoadBalancer(String loadBalancerId) {
 		appOrchestratorRestoreState.put(INSTANCE_TYPE_LOAD_BALANCER, Arrays.asList(loadBalancerId));
+		if(!isShadow) {
+			backupLoadBalancer(loadBalancerId);
+		}
 	}
 
 	public static void setRestoreIdsForApplications(List<String> applicationIds) {
@@ -692,7 +695,7 @@ public class MainInstance {
 		.get();
 	}
 
-	private static void backupAppOrchestratorApplicationCounter( String applicationId, int counter) {
+	private static void backupAppOrchestratorApplicationCounter(String applicationId, int counter) {
 		URI backupURI = UriBuilder.fromPath("")
 				.scheme("http")
 				.host(shadow.getPublicDnsName())
@@ -705,6 +708,22 @@ public class MainInstance {
 		.target(backupURI)
 		.queryParam("applicationId", applicationId)
 		.queryParam("counter", counter)
+		.request()
+		.get();
+	}
+	
+	private static void backupLoadBalancer(String loadBalancerId) {
+		URI backupURI = UriBuilder.fromPath("")
+				.scheme("http")
+				.host(shadow.getPublicDnsName())
+				.port(8080)
+				.path(API_ROOT_MAIN)
+				.path("backup")
+				.path("load-balancer")
+				.build();
+		ClientBuilder.newClient()
+		.target(backupURI)
+		.queryParam("loadBalancerId", loadBalancerId)
 		.request()
 		.get();
 	}

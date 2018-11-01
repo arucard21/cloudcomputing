@@ -374,7 +374,7 @@ public class AppOrchestrator {
 		}
 	}
 
-	private static void processDownscaledApplicationInstances() {
+	private static void processDownscaledApplicationInstances() throws URISyntaxException {
 		List<String> downscaledInstances = new ArrayList<>();
 		for (String instanceId: toBeDownscaledInstances) {
 			if (applicationTargets.get(instanceId).getCurrentAmountOfRequests() == 0) {
