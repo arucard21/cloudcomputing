@@ -138,9 +138,5 @@ public class ApplicationScalingTest extends SystemTest{
 			return;
 		}
 		Assertions.assertEquals(initialAmountOfApplications, scaledDownAmountOfApplications);
-		System.err.println("Downscale time: "+ZonedDateTime.now());
-		long downscaleTime = System.currentTimeMillis() - upscaleTime;
-		System.err.println("Downscale duration: "+Duration.ofMillis(downscaleTime));
-		
 	}
 }
