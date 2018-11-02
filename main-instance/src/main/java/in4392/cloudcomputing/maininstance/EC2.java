@@ -251,9 +251,9 @@ public class EC2 {
 	public static boolean checkJavaInstalled(String instance) throws IOException {
 		boolean passed = false;
 		// wait up to 2.5 minutes for Java to be installed
-		for (int j = 0; j < 20; j++) {
+		for (int j = 0; j < 10; j++) {
 			try {
-				Thread.sleep(10000);
+				Thread.sleep(30000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -267,9 +267,7 @@ public class EC2 {
 				try(Session session = ssh.startSession()){
 					command = session.exec(remoteCommand);
 				}
-				System.out.println(command.getExitStatus());
 				if (command.getExitStatus() > 0) {
-					System.out.println("Finished");
 					passed = true;
 					break;
 				}

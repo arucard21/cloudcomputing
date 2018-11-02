@@ -474,8 +474,6 @@ public class MainInstance {
 	} 
 	
 	private static void sendMainInstanceIdToApplicationOrchestratorFromShadow() throws URISyntaxException {
-		System.out.println(mainInstanceRestoreState.get(INSTANCE_TYPE_APP_ORCHESTRATOR));
-		System.out.println(EC2.retrieveEC2InstanceWithId(mainInstanceRestoreState.get(INSTANCE_TYPE_APP_ORCHESTRATOR)).getPublicDnsName());
         URI appOrchestratorURI = new URI("http", EC2.retrieveEC2InstanceWithId(mainInstanceRestoreState.get(INSTANCE_TYPE_APP_ORCHESTRATOR)).getPublicDnsName(), null, null);
         sendMainInstanceIdToApplicationOrchestrator(appOrchestratorURI);
 	}
