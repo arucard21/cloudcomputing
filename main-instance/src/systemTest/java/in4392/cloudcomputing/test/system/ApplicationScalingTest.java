@@ -6,6 +6,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -95,7 +97,8 @@ public class ApplicationScalingTest extends SystemTest{
 	public void scaleUpAndDownByOneInstance() throws IOException, InterruptedException {
 		int initialAmountOfApplications = getAmountOfDeployedApplicationsFromAppOrchestrator();
 		sendRequestsToApplicationWithDelay((initialAmountOfApplications*6), 600);
-
+		long startTime = System.currentTimeMillis();
+		System.err.println("Start time: "+ZonedDateTime.now());
 		/*
 		 * wait for scaling up, check every minute
 		 */
@@ -114,7 +117,9 @@ public class ApplicationScalingTest extends SystemTest{
 			return;
 		}
 		Assertions.assertEquals(initialAmountOfApplications+1, scaledUpAmountOfApplications);
-		
+		System.err.println("Upscale time: "+ZonedDateTime.now());
+		long upscaleTime = System.currentTimeMillis() - startTime;
+		System.err.println("Upscale duration: "+Duration.ofMillis(upscaleTime));
 		/*
 		 * wait for scaling down, check every minute
 		 */
@@ -133,5 +138,9 @@ public class ApplicationScalingTest extends SystemTest{
 			return;
 		}
 		Assertions.assertEquals(initialAmountOfApplications, scaledDownAmountOfApplications);
+		System.err.println("Downscale time: "+ZonedDateTime.now());
+		long downscaleTime = System.currentTimeMillis() - upscaleTime;
+		System.err.println("Downscale duration: "+Duration.ofMillis(downscaleTime));
+		
 	}
 }
